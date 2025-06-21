@@ -21,15 +21,15 @@ app.post("/send-contact", async (req, res) => {
       port: process.env.SMTP_PORT || 587,
       secure: process.env.SMTP_SECURE === "true" || false,
       auth: {
-        user: process.env.SMTP_USER || "vivekrawat566@gmail.com",
+        user: process.env.SMTP_USER || "infoflynutrition@gmail.com",
         pass: process.env.SMTP_PASS || "your_app_password_here",
       },
     });
     await transporter.sendMail({
       from: `GeMore Nutrients Website <${
-        process.env.SMTP_USER || "vivekrawat566@gmail.com"
+        process.env.SMTP_USER || "infoflynutrition@gmail.com"
       }>`,
-      to: "vivekrawat566@gmail.com",
+      to: "infoflynutrition@gmail.com",
       subject: "New Contact Form Submission - GeMore Nutrients",
       html: `
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
