@@ -1,0 +1,17 @@
+/* Custom Hero Section Styles */ .custom-hero { background:
+linear-gradient(90deg, #fff 50%, #8b0000 50%); color: #222; padding: 40px 0 30px
+0; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08); margin-bottom: 0; } .hero-flex {
+display: flex; align-items: center; justify-content: space-between; }
+.hero-left, .hero-right { flex: 1; padding: 20px; } .hero-center { flex: 1;
+display: flex; justify-content: center; } .hero-logo { width: 120px;
+margin-bottom: 20px; } .hero-product-img { width: 260px; max-width: 100%;background: transparent;
+border-radius: 16px; } .hero-product-title { font-size: 3rem; color: #fff;
+letter-spacing: 2px; font-weight: 700; text-shadow: 0 2px 8px rgba(0, 0, 0,
+0.12); } .hero-details h2 { color: #8b0000; font-size: 2rem; font-weight: 700; }
+.hero-details p { font-size: 1.2rem; margin: 8px 0; } .hero-contact {
+margin-top: 20px; font-size: 1.1rem; } .hero-right p { color: #fff; margin-top:
+30px; font-size: 1.1rem; } .hero-right a { color: #fff; text-decoration:
+underline; } @media (max-width: 900px) { .hero-flex { flex-direction: column;
+text-align: center; } .hero-left, .hero-right, .hero-center { padding: 10px; }
+.hero-product-title { font-size: 2.2rem; } .hero-product-img { width: 180px; }
+.custom-hero { background: linear-gradient(227deg, #fff 50%, #8b0000 50%); } }
