@@ -13,4 +13,4 @@ following content: `env SMTP_HOST=smtp.example.com SMTP_PORT=465
 SMTP_SECURE=true SMTP_USER=your_smtp_username SMTP_PASS=your_smtp_password ` -
 Replace with your actual SMTP credentials. 3. **Run the server:** `bash npm
 start ` The server will run on `http://localhost:3000` by default. ## Contact
-For queries or support, email: infoflynutrition@gmail.com
+For queries or support, email: info@gemorenutralife.com
