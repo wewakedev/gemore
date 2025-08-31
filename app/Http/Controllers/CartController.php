@@ -185,6 +185,34 @@ class CartController extends Controller
     }
 
     /**
+     * Clear all items from the cart.
+     */
+    public function clear(Request $request): JsonResponse
+    {
+        $cartToken = $request->cookie('cart_token');
+        
+        if (!$cartToken) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cart token not found'
+            ], 400);
+        }
+
+        // Delete all cart items for this cart token
+        $deleted = Cart::where('cart_token', $cartToken)->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cart cleared successfully',
+            'data' => [
+                'items' => collect(),
+                'total' => 0,
+                'item_count' => 0
+            ]
+        ]);
+    }
+
+    /**
      * Display checkout page.
      */
     public function checkout()

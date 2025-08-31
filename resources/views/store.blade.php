@@ -731,8 +731,8 @@ class StoreManager {
             <div class="product-item" data-category="${product.category.slug}">
                 <div class="product-card">
                     <div class="product-image">
-                        ${product.first_image ? 
-                            `<img src="/images/${product.first_image}" alt="${product.name}" loading="lazy" />` : 
+                        ${product.images && product.images.length > 0 ? 
+                            `<img src="/images/${product.images[0]}" alt="${product.name}" loading="lazy" />` : 
                             '<div class="no-image"><i class="fas fa-image"></i></div>'
                         }
                         <div class="product-overlay">

@@ -106,8 +106,8 @@ class CartManager {
         this.buyNow(e.target);
       }
 
-      // Quantity controls for both cart page and sidebar
-      if (e.target.matches(".quantity-btn.minus")) {
+      // Quantity controls for cart page only (sidebar handled by CartFunctions)
+      if (e.target.matches(".quantity-btn.minus") && !e.target.closest('.cart-sidebar')) {
         e.preventDefault();
         const productId =
           e.target.dataset.id || e.target.closest("[data-id]")?.dataset.id;
@@ -116,7 +116,7 @@ class CartManager {
         }
       }
 
-      if (e.target.matches(".quantity-btn.plus")) {
+      if (e.target.matches(".quantity-btn.plus") && !e.target.closest('.cart-sidebar')) {
         e.preventDefault();
         const productId =
           e.target.dataset.id || e.target.closest("[data-id]")?.dataset.id;
@@ -125,10 +125,10 @@ class CartManager {
         }
       }
 
-      // Remove item from cart (both page and sidebar)
+      // Remove item from cart (cart page only, sidebar handled by CartFunctions)
       if (
-        e.target.matches(".remove-item") ||
-        e.target.closest(".remove-item")
+        (e.target.matches(".remove-item") || e.target.closest(".remove-item")) &&
+        !e.target.closest('.cart-sidebar')
       ) {
         e.preventDefault();
         this.removeFromCart(
@@ -735,9 +735,33 @@ class CartManager {
     if (this.cart.length === 0) {
       if (cartEmpty) cartEmpty.style.display = "block";
       cartItems.innerHTML = "";
-      if (cartTotal)
-        cartTotal.innerHTML =
-          '<div class="summary-row total-row"><span><strong>Total:</strong></span><span><strong>₹0</strong></span></div>';
+      if (cartTotal) {
+        cartTotal.innerHTML = `
+          <div class="summary-row">
+            <span>Subtotal:</span>
+            <span>₹0</span>
+          </div>
+          <div class="summary-row">
+            <span>Shipping:</span>
+            <span>₹0</span>
+          </div>
+          <div class="summary-row">
+            <span>Tax:</span>
+            <span>₹0</span>
+          </div>
+          
+          <div class="coupon-section-sidebar">
+            <div class="coupon-input">
+              <input type="text" id="sidebar-coupon-code" placeholder="Coupon code">
+              <button class="btn btn-secondary btn-sm" id="sidebar-apply-coupon">Apply</button>
+            </div>
+          </div>
+          <div class="summary-row total-row">
+            <span><strong>Total:</strong></span>
+            <span><strong>₹0</strong></span>
+          </div>
+        `;
+      }
       return;
     }
 

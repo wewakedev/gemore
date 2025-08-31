@@ -16,6 +16,7 @@ Route::prefix('cart')->group(function () {
     Route::post('/add/{productId}', [CartController::class, 'add'])->name('cart.add');
     Route::post('/update/{productId}', [CartController::class, 'update'])->name('cart.update');
     Route::delete('/remove/{productId}', [CartController::class, 'remove'])->name('cart.remove');
+    Route::post('/clear', [CartController::class, 'clear'])->name('cart.clear');
 });
 
 Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');

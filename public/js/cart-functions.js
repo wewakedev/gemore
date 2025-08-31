@@ -121,6 +121,34 @@ window.CartFunctions = {
     },
 
     /**
+     * Clear entire cart
+     */
+    clearCart: function () {
+        if (confirm('Are you sure you want to clear your entire cart?')) {
+            fetch('/cart/clear', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    this.showNotification(data.message, 'success');
+                    this.refreshCartState();
+                } else {
+                    this.showNotification(data.message || 'Error clearing cart', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error clearing cart:', error);
+                this.showNotification('Error clearing cart', 'error');
+            });
+        }
+    },
+
+    /**
      * Update cart count in header
      */
     updateCartCount: function () {
@@ -283,32 +311,97 @@ window.CartFunctions.updateCartSidebarWithData = function (cartData) {
     const emptyContainer = document.getElementById("cart-empty");
     const totalEl = document.getElementById("cart-total");
     if (!itemsContainer || !emptyContainer || !totalEl) return;
-    
+    console.log('cartData', cartData);
     if (cartData.items.length > 0) {
         emptyContainer.style.display = "none";
         itemsContainer.innerHTML = cartData.items
             .map(
                 (item) =>
-                    `<div class="cart-item" data-product-id="${
-                        item.product_id
-                    }">
-                    <div class="item-image"><img src="/images/${
-                        item.product.images[0] || "placeholder.png"
-                    }" /></div>
-                    <div class="item-details">
-                        <div class="item-name">${item.product.name}</div>
-                        <div class="item-quantity">Qty: ${
-                            item.quantity
-                        }</div>
-                    </div>
-                </div>`
+                    `<div class="cart-item-sidebar" data-id="${item.product_id}">
+                        <div class="cart-item-image">
+                            <img src="/images/${item.product.images[0] || "placeholder.png"}" alt="${item.product.name}">
+                        </div>
+                        <div class="cart-item-details">
+                            <div class="cart-item-title">${item.product.name}</div>
+                            <div class="cart-item-subtitle">${item.product.description || ''}</div>
+                            <div class="cart-item-price">₹${(item.product.default_variant?.price || item.product.price) * item.quantity}</div>
+                            <div class="quantity-controls">
+                                <button class="quantity-btn minus" data-id="${item.product_id}">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <span class="quantity-display">${item.quantity}</span>
+                                <button class="quantity-btn plus" data-id="${item.product_id}">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button class="remove-item" data-id="${item.product_id}">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>`
             )
             .join("");
-        totalEl.innerHTML = `₹${cartData.total}`;
+        
+        // Update cart total with detailed breakdown
+        const subtotal = cartData.subtotal || cartData.total;
+        const shipping = cartData.shipping || 0;
+        const tax = cartData.tax || Math.round(subtotal * 0.18);
+        const discount = cartData.discount || 0;
+        const total = cartData.total;
+        
+        totalEl.innerHTML = `
+            <div class="summary-row">
+                <span>Subtotal:</span>
+                <span>₹${subtotal}</span>
+            </div>
+            <div class="summary-row">
+                <span>Shipping:</span>
+                <span>₹${shipping}</span>
+            </div>
+            <div class="summary-row">
+                <span>Tax:</span>
+                <span>₹${tax}</span>
+            </div>
+            
+            <div class="coupon-section-sidebar">
+                <div class="coupon-input">
+                    <input type="text" id="sidebar-coupon-code" placeholder="Coupon code">
+                    <button class="btn btn-secondary btn-sm" id="sidebar-apply-coupon">Apply</button>
+                </div>
+            </div>
+            <div class="summary-row total-row">
+                <span><strong>Total:</strong></span>
+                <span><strong>₹${total}</strong></span>
+            </div>
+        `;
     } else {
         itemsContainer.innerHTML = "";
         emptyContainer.style.display = "block";
-        totalEl.innerHTML = "";
+        totalEl.innerHTML = `
+            <div class="summary-row">
+                <span>Subtotal:</span>
+                <span>₹0</span>
+            </div>
+            <div class="summary-row">
+                <span>Shipping:</span>
+                <span>₹0</span>
+            </div>
+            <div class="summary-row">
+                <span>Tax:</span>
+                <span>₹0</span>
+            </div>
+            
+            <div class="coupon-section-sidebar">
+                <div class="coupon-input">
+                    <input type="text" id="sidebar-coupon-code" placeholder="Coupon code">
+                    <button class="btn btn-secondary btn-sm" id="sidebar-apply-coupon">Apply</button>
+                </div>
+            </div>
+            <div class="summary-row total-row">
+                <span><strong>Total:</strong></span>
+                <span><strong>₹0</strong></span>
+            </div>
+        `;
     }
 };
 
@@ -318,9 +411,28 @@ window.CartFunctions.openCartSidebar = function () {
     sidebar.classList.toggle("active");
 };
 
-// Add function to change quantity by delta on product cards
+// Add function to change quantity by delta on product cards and sidebar
 window.CartFunctions.changeQuantity = function (productId, change) {
-    // Try to find input in product listing pages (with data-product-id)
+    // For sidebar items, we don't need to find inputs - just make the API call directly
+    const sidebarItem = document.querySelector(`.cart-item-sidebar[data-id="${productId}"]`);
+    
+    if (sidebarItem) {
+        // Get current quantity from the display span
+        const quantityDisplay = sidebarItem.querySelector('.quantity-display');
+        const currentQty = quantityDisplay ? parseInt(quantityDisplay.textContent) || 0 : 0;
+        const newQty = currentQty + change;
+        
+        if (newQty <= 0) {
+            this.removeFromCart(productId);
+            return;
+        }
+        
+        // Make API call to update quantity
+        this.updateQuantity(productId, newQty);
+        return;
+    }
+
+    // For product listing pages and cart page - try to find input
     let input = document.querySelector(
         `.quantity-controls .quantity-input[data-product-id="${productId}"]`
     );
@@ -450,12 +562,55 @@ window.addToCart = function (productId, quantity = 1, variantId = null) {
     CartFunctions.addToCart(productId, quantity, variantId);
 };
 
+window.clearCart = function () {
+    CartFunctions.clearCart();
+};
+
+// Add coupon functionality for sidebar
+window.CartFunctions.applySidebarCoupon = function() {
+    const couponInput = document.getElementById("sidebar-coupon-code");
+    if (!couponInput) return;
+    
+    const couponCode = couponInput.value.trim().toUpperCase();
+    
+    // This would typically make an API call to apply the coupon
+    // For now, we'll just show a message
+    if (couponCode) {
+        fetch('/cart/apply-coupon', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ coupon_code: couponCode })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                this.showNotification(data.message, 'success');
+                this.refreshCartState();
+                couponInput.value = '';
+            } else {
+                this.showNotification(data.message || 'Invalid coupon code', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error applying coupon:', error);
+            this.showNotification('Error applying coupon', 'error');
+        });
+    } else {
+        this.showNotification('Please enter a coupon code', 'warning');
+    }
+};
+
 // Initialize cart count on page load
 document.addEventListener("DOMContentLoaded", function () {
     if (typeof CartFunctions !== "undefined") {
         CartFunctions.updateCartCount();
         CartFunctions.updateCartSidebar();
         CartFunctions.renderProductCartButtons();
+        
+        // Close cart sidebar
         document
             .getElementById("close-cart")
             ?.addEventListener("click", function () {
@@ -463,12 +618,55 @@ document.addEventListener("DOMContentLoaded", function () {
                     .getElementById("cart-sidebar")
                     .classList.remove("active");
             });
+            
+        // Sidebar event handlers
+        document.addEventListener("click", function(e) {
+            // Sidebar coupon apply button
+            if (e.target && e.target.id === "sidebar-apply-coupon") {
+                e.preventDefault();
+                CartFunctions.applySidebarCoupon();
+            }
+            
+            // Sidebar quantity buttons
+            if (e.target.matches('.cart-item-sidebar .quantity-btn.minus') || 
+                e.target.closest('.cart-item-sidebar .quantity-btn.minus')) {
+                e.preventDefault();
+                const btn = e.target.closest('.quantity-btn.minus');
+                const productId = btn.dataset.id;
+                if (productId) {
+                    CartFunctions.changeQuantity(productId, -1);
+                }
+            }
+            
+            if (e.target.matches('.cart-item-sidebar .quantity-btn.plus') || 
+                e.target.closest('.cart-item-sidebar .quantity-btn.plus')) {
+                e.preventDefault();
+                const btn = e.target.closest('.quantity-btn.plus');
+                const productId = btn.dataset.id;
+                if (productId) {
+                    CartFunctions.changeQuantity(productId, 1);
+                }
+            }
+            
+            // Sidebar remove item buttons
+            if (e.target.matches('.cart-item-sidebar .remove-item') || 
+                e.target.closest('.cart-item-sidebar .remove-item')) {
+                e.preventDefault();
+                const btn = e.target.closest('.remove-item');
+                const productId = btn.dataset.id;
+                if (productId) {
+                    CartFunctions.removeFromCart(productId);
+                }
+            }
+        });
+        
         // Open sidebar on load if cart has items (using cached data)
         CartFunctions.getCartData().then((data) => {
             if (data.success && data.data.items.length > 0) {
                 // CartFunctions.openCartSidebar();
             }
         });
+        
         // Bind cart-toggle buttons to open sidebar
         document.querySelectorAll(".cart-toggle").forEach((btn) => {
             btn.addEventListener("click", function (e) {

@@ -18,10 +18,6 @@ class FrontendAPI {
         this.logout();
       }
     }
-
-    // Load initial data
-    await this.loadFeaturedProducts();
-    await this.loadCategories();
   }
 
   async apiCall(endpoint, options = {}) {
@@ -99,17 +95,6 @@ class FrontendAPI {
     this.updateUIForLoggedOutUser();
   }
 
-  async loadFeaturedProducts(limit = 6) {
-    try {
-      const data = await this.apiCall(`/products/featured?limit=${limit}`);
-      this.renderFeaturedProducts(data.data);
-      return data.data;
-    } catch (error) {
-      console.error("Failed to load featured products:", error);
-      return [];
-    }
-  }
-
   async loadProducts(filters = {}) {
     try {
       const params = new URLSearchParams(filters);
@@ -118,17 +103,6 @@ class FrontendAPI {
     } catch (error) {
       console.error("Failed to load products:", error);
       return { products: [], pagination: {} };
-    }
-  }
-
-  async loadCategories() {
-    try {
-      const data = await this.apiCall("/products/categories/all");
-      this.renderCategories(data.data);
-      return data.data;
-    } catch (error) {
-      console.error("Failed to load categories:", error);
-      return [];
     }
   }
 

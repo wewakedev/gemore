@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -38,12 +39,15 @@
     <link rel="stylesheet" href="css/nice-select.css" />
 
     <!-- Slick Slider CSS -->
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css" />
+    <link rel="stylesheet" type="text/css"
+        href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css" />
 
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+        integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
     @yield('additional_css')
 </head>
 
@@ -72,7 +76,8 @@
             </div>
             <ul class="navbar-links" id="navbar-links">
                 <li><a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">Home</a></li>
-                <li><a href="{{ route('store') }}" class="{{ request()->routeIs('store') ? 'active' : '' }}">Store</a></li>
+                <li><a href="{{ route('store') }}" class="{{ request()->routeIs('store') ? 'active' : '' }}">Store</a>
+                </li>
                 <li><a href="{{ route('cart') }}" class="{{ request()->routeIs('cart') ? 'active' : '' }}">Cart</a></li>
                 <li><a href="{{ route('home') }}#products">Products</a></li>
                 <li><a href="{{ route('home') }}#about">About Us</a></li>
@@ -105,7 +110,8 @@
                 <div class="col-md-4">
                     <div class="footer-section">
                         <h3>Ge More Nutralife</h3>
-                        <p>Premium quality sports supplements for your fitness journey. GMP & FSSAI certified products.</p>
+                        <p>Premium quality sports supplements for your fitness journey. GMP & FSSAI certified products.
+                        </p>
                         <div class="social-links">
                             <a href="#" class="social-link"><i class="fab fa-facebook"></i></a>
                             <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
@@ -157,18 +163,40 @@
             <div class="cart-items" id="cart-items">
                 <!-- Cart items will be dynamically loaded here -->
             </div>
-            <div class="cart-empty" id="cart-empty" style="display: none">
+            <div class="cart-empty" id="cart-empty" style="display: none;">
                 <i class="fas fa-shopping-cart"></i>
                 <p>Your cart is empty</p>
             </div>
         </div>
         <div class="cart-footer">
             <div class="cart-total" id="cart-total">
-                <!-- Cart total will be displayed here -->
+                <div class="summary-row">
+                    <span>Subtotal:</span>
+                    <span>₹0</span>
+                </div>
+                <div class="summary-row">
+                    <span>Shipping:</span>
+                    <span>₹0</span>
+                </div>
+                <div class="summary-row">
+                    <span>Tax:</span>
+                    <span>₹0</span>
+                </div>
+                
+                <div class="coupon-section-sidebar">
+                    <div class="coupon-input">
+                        <input type="text" id="sidebar-coupon-code" placeholder="Coupon code">
+                        <button class="btn btn-secondary btn-sm" id="sidebar-apply-coupon">Apply</button>
+                    </div>
+                </div>
+                <div class="summary-row total-row">
+                    <span><strong>Total:</strong></span>
+                    <span><strong>₹0</strong></span>
+                </div>
             </div>
             <div class="cart-actions">
-                <a href="{{ route('cart') }}" class="btn btn-primary">View Cart</a>
-                <button class="btn btn-success" id="checkout-btn">Checkout</button>
+                <button class="btn btn-outline" id="clear-cart">Clear Cart</button>
+                <button class="btn btn-primary" id="checkout-btn">Checkout</button>
             </div>
         </div>
     </div>
@@ -196,13 +224,13 @@
     <script src="js/jquery-3.0.0.min.js"></script>
     <script src="js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('js/cart-functions.js') }}"></script>
-    
+
     <!-- Slick Slider JS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
-    
+
     <script src="js/frontend-api.js"></script>
-    <script src="js/optimized.js"></script>
 
     @yield('additional_js')
 </body>
-</html> 
+
+</html>
