@@ -696,13 +696,25 @@
         }
 
         function buyNow(productId) {
-            // Add to cart first, then redirect to checkout
-            addToCart(productId);
+            // Use shared cart functions if available
+            if (typeof CartFunctions !== 'undefined') {
+                CartFunctions.buyNow(productId, 1);
+            } else {
+                // Fallback: Add to cart first, then open checkout modal
+                addToCart(productId);
 
-            // Small delay to ensure cart is updated
-            setTimeout(() => {
-                window.location.href = '/checkout';
-            }, 500);
+                // Small delay to ensure cart is updated, then open checkout modal
+                setTimeout(() => {
+                    const checkoutModal = document.getElementById('checkout-modal');
+                    if (checkoutModal) {
+                        checkoutModal.classList.add('active');
+                        document.body.classList.add('modal-open');
+                    } else {
+                        // If no checkout modal, redirect to cart
+                        window.location.href = '/cart';
+                    }
+                }, 500);
+            }
         }
 
         function toggleWishlist(productId) {

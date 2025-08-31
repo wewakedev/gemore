@@ -526,8 +526,20 @@ function buyNow(productId) {
     if (typeof CartFunctions !== 'undefined') {
         CartFunctions.buyNow(productId, quantity);
     } else {
-        // Fallback implementation
-        alert('Buy now functionality will be implemented');
+        // Fallback: Add to cart first, then open checkout modal
+        addToCart(productId);
+
+        // Small delay to ensure cart is updated, then open checkout modal
+        setTimeout(() => {
+            const checkoutModal = document.getElementById('checkout-modal');
+            if (checkoutModal) {
+                checkoutModal.classList.add('active');
+                document.body.classList.add('modal-open');
+            } else {
+                // If no checkout modal, redirect to cart
+                window.location.href = '/cart';
+            }
+        }, 500);
     }
 }
 

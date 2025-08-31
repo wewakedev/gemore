@@ -551,11 +551,19 @@ class CartManager {
       this.updateCartSidebar();
       this.updateNavCartCount();
 
-      // Redirect to cart page or show checkout
+      // Show checkout modal or redirect to cart page
       if (window.location.pathname.includes("cart.html")) {
         this.showCheckout();
       } else {
-        window.location.href = "cart.html";
+        // Try to open checkout modal first
+        const checkoutModal = document.getElementById('checkout-modal');
+        if (checkoutModal) {
+          checkoutModal.classList.add('active');
+          document.body.classList.add('modal-open');
+        } else {
+          // Fallback to cart page
+          window.location.href = "cart.html";
+        }
       }
     }
   }

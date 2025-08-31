@@ -237,7 +237,7 @@ window.CartFunctions = {
     },
 
     /**
-     * Buy now functionality - add to cart and redirect to checkout
+     * Buy now functionality - add to cart and open checkout modal
      * @param {number} productId - The product ID to buy
      * @param {number} quantity - Quantity to buy (default: 1)
      */
@@ -245,10 +245,114 @@ window.CartFunctions = {
         // First add to cart
         this.addToCart(productId, quantity);
 
-        // Then redirect to checkout after a short delay
+        // Then open checkout modal after a short delay
         setTimeout(() => {
-            window.location.href = "/checkout";
+            this.openCheckoutModal();
         }, 1000);
+    },
+
+    /**
+     * Open the checkout modal
+     */
+    openCheckoutModal: function() {
+        const checkoutModal = document.getElementById('checkout-modal');
+        if (checkoutModal) {
+            checkoutModal.classList.add('active');
+            document.body.classList.add('modal-open');
+            
+            // Update checkout form with current cart data
+            this.updateCheckoutForm();
+            
+            // Set up close button event listener
+            this.setupCheckoutModalEvents();
+        } else {
+            // Fallback: redirect to cart page
+            window.location.href = '/cart';
+        }
+    },
+
+    /**
+     * Set up checkout modal event listeners
+     */
+    setupCheckoutModalEvents: function() {
+        const closeBtn = document.getElementById('close-checkout');
+        const checkoutModal = document.getElementById('checkout-modal');
+        
+        if (closeBtn) {
+            closeBtn.onclick = () => this.closeCheckoutModal();
+        }
+        
+        // Close modal when clicking outside
+        if (checkoutModal) {
+            checkoutModal.onclick = (e) => {
+                if (e.target === checkoutModal) {
+                    this.closeCheckoutModal();
+                }
+            };
+        }
+    },
+
+    /**
+     * Close the checkout modal
+     */
+    closeCheckoutModal: function() {
+        const checkoutModal = document.getElementById('checkout-modal');
+        if (checkoutModal) {
+            checkoutModal.classList.remove('active');
+            document.body.classList.remove('modal-open');
+        }
+    },
+
+    /**
+     * Update checkout form with current cart data
+     */
+    updateCheckoutForm: function() {
+        // This will be called to populate the checkout form with cart items
+        // The actual implementation depends on your checkout form structure
+        this.getCartData().then(data => {
+            if (data.success && data.data.items) {
+                // Update order summary in checkout modal
+                this.updateOrderSummary(data.data);
+            }
+        });
+    },
+
+    /**
+     * Update order summary in checkout modal
+     */
+    updateOrderSummary: function(cartData) {
+        const orderSummary = document.getElementById('order-summary');
+        if (orderSummary && cartData.items) {
+            let summaryHTML = '<h4>Order Summary</h4>';
+            let subtotal = 0;
+            
+            cartData.items.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                subtotal += itemTotal;
+                summaryHTML += `
+                    <div class="order-item">
+                        <span class="item-name">${item.product_name}</span>
+                        <span class="item-quantity">x${item.quantity}</span>
+                        <span class="item-price">₹${itemTotal}</span>
+                    </div>
+                `;
+            });
+            
+            summaryHTML += `
+                <div class="order-total">
+                    <div class="subtotal">
+                        <span>Subtotal:</span>
+                        <span>₹${subtotal}</span>
+                    </div>
+                    <div class="total">
+                        <span>Total:</span>
+                        <span>₹${subtotal}</span>
+                    </div>
+                </div>
+            `;
+            
+            orderSummary.innerHTML = summaryHTML;
+        }
     },
     // Add cached fetch for cart data
     cartDataPromise: null,
