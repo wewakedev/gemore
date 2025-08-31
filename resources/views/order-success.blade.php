@@ -369,7 +369,7 @@
                             @foreach($order->items as $item)
                                 <div class="order-item">
                                     <div class="item-image">
-                                        <img src="{{ $item->product && $item->product->images && count($item->product->images) > 0 ? asset('images/' . $item->product->images[0]) : asset('images/placeholder.png') }}" 
+                                        <img src="{{ $item->product && $item->product->images && count($item->product->images) > 0 ? asset('images/' . $item->product->images[0]) : asset('images/placeholder.svg') }}" 
                                              alt="{{ $item->product_name }}" />
                                     </div>
                                     <div class="item-details">

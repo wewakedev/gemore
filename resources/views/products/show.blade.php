@@ -420,7 +420,7 @@
                 <div class="related-grid">
                     @foreach ($relatedProducts as $relatedProduct)
                         <div class="related-product-card">
-                            <img src="{{ $relatedProduct->images && count($relatedProduct->images) > 0 ? asset('images/' . $relatedProduct->images[0]) : asset('images/placeholder.png') }}" 
+                            <img src="{{ $relatedProduct->images && count($relatedProduct->images) > 0 ? asset('images/' . $relatedProduct->images[0]) : asset('images/placeholder.svg') }}" 
                                  alt="{{ $relatedProduct->name }}" 
                                  class="related-product-image" />
                             <div class="related-product-info">

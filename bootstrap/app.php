@@ -14,6 +14,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\CartTokenMiddleware::class,
         ]);
+        
+        // Use our custom CSRF middleware
+        $middleware->validateCsrfTokens(except: [
+            'phonepe/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

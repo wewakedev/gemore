@@ -425,7 +425,7 @@
                             @foreach ($cartItems as $item)
                                 <div class="cart-item" data-product-id="{{ $item->product_id }}">
                                     <div class="item-image">
-                                        <img src="{{ $item->product->images && count($item->product->images) > 0 ? asset('images/' . $item->product->images[0]) : asset('images/placeholder.png') }}"
+                                        <img src="{{ $item->product->images && count($item->product->images) > 0 ? asset('images/' . $item->product->images[0]) : asset('images/placeholder.svg') }}"
                                             alt="{{ $item->product->name }}" />
                                     </div>
                                     <div class="item-details">

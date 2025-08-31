@@ -319,7 +319,7 @@ window.CartFunctions.updateCartSidebarWithData = function (cartData) {
                 (item) =>
                     `<div class="cart-item-sidebar" data-id="${item.product_id}">
                         <div class="cart-item-image">
-                            <img src="/images/${item.product.images[0] || "placeholder.png"}" alt="${item.product.name}">
+                            <img src="/images/${item.product.images[0] || "placeholder.svg"}" alt="${item.product.name}">
                         </div>
                         <div class="cart-item-details">
                             <div class="cart-item-title">${item.product.name}</div>

@@ -13,30 +13,30 @@
     <meta name="robots" content="index, follow" />
 
     <!-- Favicon -->
-    <link rel="icon" href="images/fevicon.png" type="image/png" />
-    <link rel="apple-touch-icon" href="images/fevicon.png" />
+    <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="{{ asset('favicon.ico') }}" />
 
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Critical CSS -->
-    <link rel="stylesheet" href="css/bootstrap.min.css" />
-    <link rel="stylesheet" href="css/style.css" />
-    <link rel="stylesheet" href="css/responsive.css" />
-    <link rel="stylesheet" href="css/hero-custom.css" />
-    <link rel="stylesheet" href="css/navbar-custom.css" />
-    <link rel="stylesheet" href="css/theme.css" />
-    <link rel="stylesheet" href="css/font-awesome.min.css" />
-    <link rel="stylesheet" href="css/icomoon.css" />
+    <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/responsive.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/hero-custom.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/navbar-custom.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/theme.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/font-awesome.min.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/icomoon.css') }}" />
 
     <!-- Additional CSS files -->
-    <link rel="stylesheet" href="css/animate.min.css" />
-    <link rel="stylesheet" href="css/normalize.css" />
-    <link rel="stylesheet" href="css/meanmenu.css" />
-    <link rel="stylesheet" href="css/owl.carousel.min.css" />
-    <link rel="stylesheet" href="css/slick.css" />
-    <link rel="stylesheet" href="css/jquery-ui.css" />
-    <link rel="stylesheet" href="css/nice-select.css" />
+    <link rel="stylesheet" href="{{ asset('css/animate.min.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/normalize.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/meanmenu.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/owl.carousel.min.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/slick.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/jquery-ui.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/nice-select.css') }}" />
 
     <!-- Slick Slider CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css" />
@@ -66,7 +66,7 @@
         <div class="container">
             <div class="navbar-brand">
                 <a href="{{ route('home') }}">
-                    <img src="{{ asset('images/logo.png') }}" alt="Ge More Nutralife" class="logo">
+                    <img src="{{ asset('images/logo.svg') }}" alt="Ge More Nutralife" class="logo">
                 </a>
             </div>
             <div class="navbar-toggle" id="navbar-toggle">
@@ -324,14 +324,14 @@
     </div>
 
     <!-- Essential JavaScript -->
-    <script src="js/jquery-3.0.0.min.js"></script>
-    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="{{ asset('js/jquery-3.0.0.min.js') }}"></script>
+    <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('js/cart-functions.js') }}"></script>
 
     <!-- Slick Slider JS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
 
-    <script src="js/frontend-api.js"></script>
+    <script src="{{ asset('js/frontend-api.js') }}"></script>
 
     @yield('additional_js')
 

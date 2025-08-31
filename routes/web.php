@@ -44,6 +44,8 @@ Route::prefix('order')->group(function () {
     Route::post('/checkout', [OrderController::class, 'processCheckout'])->name('order.checkout');
     Route::get('/success/{order}', [OrderController::class, 'orderSuccess'])->name('order.success');
     Route::get('/failed/{order}', [OrderController::class, 'orderFailed'])->name('order.failed');
+    Route::get('/pending/{order}', [OrderController::class, 'orderPending'])->name('order.pending');
+    Route::get('/status/{order}', [OrderController::class, 'checkPaymentStatus'])->name('order.status');
 });
 
 // PhonePe Payment Gateway Routes

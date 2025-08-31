@@ -364,22 +364,38 @@ class OrderController extends Controller
             }
 
             // Update order based on payment status
-            if ($transactionStatus === 'COMPLETED') {
-                $order->update([
-                    'status' => 'confirmed',
-                    'payment' => array_merge($order->payment, [
-                        'status' => 'completed',
-                        'gateway_response' => $callbackResult
-                    ])
-                ]);
-            } else {
-                $order->update([
-                    'status' => 'cancelled',
-                    'payment' => array_merge($order->payment, [
-                        'status' => 'failed',
-                        'gateway_response' => $callbackResult
-                    ])
-                ]);
+            switch ($transactionStatus) {
+                case 'COMPLETED':
+                    $order->update([
+                        'status' => 'confirmed',
+                        'payment' => array_merge($order->payment, [
+                            'status' => 'completed',
+                            'gateway_response' => $callbackResult
+                        ])
+                    ]);
+                    break;
+                    
+                case 'PENDING':
+                    $order->update([
+                        'status' => 'pending',
+                        'payment' => array_merge($order->payment, [
+                            'status' => 'pending',
+                            'gateway_response' => $callbackResult
+                        ])
+                    ]);
+                    break;
+                    
+                case 'FAILED':
+                case 'CANCELLED':
+                default:
+                    $order->update([
+                        'status' => 'cancelled',
+                        'payment' => array_merge($order->payment, [
+                            'status' => 'failed',
+                            'gateway_response' => $callbackResult
+                        ])
+                    ]);
+                    break;
             }
 
             return response()->json(['success' => true]);
@@ -412,26 +428,41 @@ class OrderController extends Controller
                         // Update order status based on PhonePe response
                         $paymentState = $statusResult['state'];
                         
-                        if ($paymentState === 'COMPLETED') {
-                            $order->update([
-                                'status' => 'confirmed',
-                                'payment' => array_merge($order->payment, [
-                                    'status' => 'completed',
-                                    'gateway_response' => $statusResult
-                                ])
-                            ]);
-                            
-                            return redirect()->route('order.success', ['order' => $order->order_number]);
-                        } else {
-                            $order->update([
-                                'status' => 'cancelled',
-                                'payment' => array_merge($order->payment, [
-                                    'status' => 'failed',
-                                    'gateway_response' => $statusResult
-                                ])
-                            ]);
-                            
-                            return redirect()->route('order.failed', ['order' => $order->order_number]);
+                        switch ($paymentState) {
+                            case 'COMPLETED':
+                                $order->update([
+                                    'status' => 'confirmed',
+                                    'payment' => array_merge($order->payment, [
+                                        'status' => 'completed',
+                                        'gateway_response' => $statusResult
+                                    ])
+                                ]);
+                                
+                                return redirect()->route('order.success', ['order' => $order->order_number]);
+                                
+                            case 'PENDING':
+                                $order->update([
+                                    'status' => 'pending',
+                                    'payment' => array_merge($order->payment, [
+                                        'status' => 'pending',
+                                        'gateway_response' => $statusResult
+                                    ])
+                                ]);
+                                
+                                return redirect()->route('order.pending', ['order' => $order->order_number]);
+                                
+                            case 'FAILED':
+                            case 'CANCELLED':
+                            default:
+                                $order->update([
+                                    'status' => 'cancelled',
+                                    'payment' => array_merge($order->payment, [
+                                        'status' => 'failed',
+                                        'gateway_response' => $statusResult
+                                    ])
+                                ]);
+                                
+                                return redirect()->route('order.failed', ['order' => $order->order_number]);
                         }
                     }
                 }
@@ -471,5 +502,115 @@ class OrderController extends Controller
         }
 
         return view('order-failed', compact('order'));
+    }
+
+    /**
+     * Show order pending page
+     */
+    public function orderPending($orderNumber)
+    {
+        $order = Order::where('order_number', $orderNumber)->with('items.product')->first();
+
+        if (!$order) {
+            abort(404, 'Order not found');
+        }
+
+        return view('order-pending', compact('order'));
+    }
+
+    /**
+     * Check payment status via AJAX
+     */
+    public function checkPaymentStatus($orderNumber): JsonResponse
+    {
+        try {
+            $order = Order::where('order_number', $orderNumber)->first();
+
+            if (!$order) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Order not found'
+                ], 404);
+            }
+
+            // If payment is already completed or failed, return current status
+            if (in_array($order->payment['status'] ?? '', ['completed', 'failed'])) {
+                return response()->json([
+                    'success' => true,
+                    'status' => $order->payment['status'],
+                    'order_status' => $order->status,
+                    'redirect_url' => $order->payment['status'] === 'completed' 
+                        ? route('order.success', $order->order_number)
+                        : route('order.failed', $order->order_number)
+                ]);
+            }
+
+            // Check with PhonePe for pending payments
+            $phonePeService = new PhonePeService();
+            $statusResult = $phonePeService->checkOrderStatus($orderNumber, true);
+
+            if ($statusResult['success']) {
+                $paymentState = $statusResult['state'];
+                
+                // Update order based on current status
+                switch ($paymentState) {
+                    case 'COMPLETED':
+                        $order->update([
+                            'status' => 'confirmed',
+                            'payment' => array_merge($order->payment, [
+                                'status' => 'completed',
+                                'gateway_response' => $statusResult
+                            ])
+                        ]);
+                        
+                        return response()->json([
+                            'success' => true,
+                            'status' => 'completed',
+                            'order_status' => 'confirmed',
+                            'redirect_url' => route('order.success', $order->order_number)
+                        ]);
+                        
+                    case 'FAILED':
+                    case 'CANCELLED':
+                        $order->update([
+                            'status' => 'cancelled',
+                            'payment' => array_merge($order->payment, [
+                                'status' => 'failed',
+                                'gateway_response' => $statusResult
+                            ])
+                        ]);
+                        
+                        return response()->json([
+                            'success' => true,
+                            'status' => 'failed',
+                            'order_status' => 'cancelled',
+                            'redirect_url' => route('order.failed', $order->order_number)
+                        ]);
+                        
+                    case 'PENDING':
+                    default:
+                        return response()->json([
+                            'success' => true,
+                            'status' => 'pending',
+                            'order_status' => 'pending',
+                            'message' => 'Payment is still being processed'
+                        ]);
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'status' => 'pending',
+                'message' => 'Unable to check payment status. Please try again.'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Payment status check error: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error checking payment status'
+            ], 500);
+        }
     }
 }
