@@ -66,9 +66,9 @@ class CartManager {
         .addEventListener("click", () => this.hideCheckout());
     }
 
-    if (document.getElementById("checkout-form")) {
+    if (document.getElementById("checkout-modal-form")) {
       document
-        .getElementById("checkout-form")
+        .getElementById("checkout-modal-form")
         .addEventListener("submit", (e) => {
           e.preventDefault();
           this.processOrder();
@@ -948,7 +948,7 @@ class CartManager {
   }
 
   showCheckout() {
-    const modal = document.getElementById("checkout-modal");
+    const modal = document.getElementById("checkout-modal-form");
     const overlay = document.getElementById("overlay");
 
     if (modal && this.cart.length > 0) {
@@ -960,7 +960,7 @@ class CartManager {
   }
 
   hideCheckout() {
-    const modal = document.getElementById("checkout-modal");
+    const modal = document.getElementById("checkout-modal-form");
     const overlay = document.getElementById("overlay");
 
     if (modal) {
@@ -1011,7 +1011,7 @@ class CartManager {
   }
 
   async processOrder() {
-    const form = document.getElementById("checkout-form");
+    const form = document.getElementById("checkout-modal-form");
     const formData = new FormData(form);
     const orderData = Object.fromEntries(formData);
 
@@ -1024,7 +1024,7 @@ class CartManager {
 
     try {
       // Show loading
-      const placeOrderBtn = document.getElementById("place-order");
+      const placeOrderBtn = document.getElementById("place-order-modal");
       const originalText = placeOrderBtn.innerHTML;
       placeOrderBtn.innerHTML =
         '<i class="fas fa-spinner fa-spin"></i> Processing...';

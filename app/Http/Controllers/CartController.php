@@ -212,11 +212,5 @@ class CartController extends Controller
         ]);
     }
 
-    /**
-     * Display checkout page.
-     */
-    public function checkout()
-    {
-        return view('checkout');
-    }
+
 } 

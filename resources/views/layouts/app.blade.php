@@ -196,7 +196,7 @@
             </div>
             <div class="cart-actions">
                 <button class="btn btn-outline" id="clear-cart">Clear Cart</button>
-                <button class="btn btn-primary" id="checkout-btn">Checkout</button>
+                <a href="{{ route('cart') }}" class="btn btn-primary" id="checkout-btn">Checkout</a>
             </div>
         </div>
     </div>
@@ -210,7 +210,8 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <form id="checkout-form">
+            <form id="checkout-form" method="POST" action="{{ route('order.checkout') }}">
+                @csrf
                 <div class="checkout-body">
                     <div class="row">
                         <div class="col-md-6">
@@ -295,8 +296,8 @@
                     <button type="button" class="btn btn-secondary" id="back-to-cart">
                         Back to Cart
                     </button>
-                    <button type="submit" class="btn btn-primary" id="place-order">
-                        Place Order
+                    <button type="button" class="btn btn-primary" id="place-order-btn">
+                        <i class="fas fa-lock"></i> Place Order
                     </button>
                 </div>
             </form>
@@ -333,6 +334,173 @@
     <script src="js/frontend-api.js"></script>
 
     @yield('additional_js')
+
+    <script>
+    // Checkout Modal Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        setupCheckoutModal();
+    });
+
+    function setupCheckoutModal() {
+        const placeOrderBtn = document.getElementById('place-order-btn');
+        
+        if (placeOrderBtn) {
+            placeOrderBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                if (validateCheckoutForm()) {
+                    processCheckoutOrder();
+                }
+            });
+        }
+    }
+
+    function validateCheckoutForm() {
+        const requiredFields = document.querySelectorAll('#checkout-form [required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.style.borderColor = '#dc3545';
+                isValid = false;
+            } else {
+                field.style.borderColor = '#dee2e6';
+            }
+        });
+        
+        // Validate payment method
+        const paymentMethod = document.querySelector('input[name="payment-method"]:checked');
+        if (!paymentMethod) {
+            showNotification('Please select a payment method', 'error');
+            isValid = false;
+        }
+        
+        // Validate phone
+        const phone = document.getElementById('billing-phone').value;
+        if (phone && !/^\d{10}$/.test(phone)) {
+            document.getElementById('billing-phone').style.borderColor = '#dc3545';
+            showNotification('Please enter a valid 10-digit phone number', 'error');
+            isValid = false;
+        }
+        
+        return isValid;
+    }
+
+    function processCheckoutOrder() {
+        const placeOrderBtn = document.getElementById('place-order-btn');
+        const originalText = placeOrderBtn.innerHTML;
+        
+        // Disable button and show loading
+        placeOrderBtn.disabled = true;
+        placeOrderBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        
+        // Get form data
+        const formData = new FormData(document.getElementById('checkout-form'));
+        
+        // Submit to Laravel backend
+        fetch('/order/checkout', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                const paymentMethod = formData.get('payment-method');
+                
+                if (paymentMethod === 'cod') {
+                    // COD order - show success and redirect
+                    placeOrderBtn.innerHTML = '<i class="fas fa-check"></i> Order Placed!';
+                    showNotification('Order placed successfully! Redirecting...', 'success');
+                    
+                    setTimeout(() => {
+                        window.location.href = data.data.redirect_url;
+                    }, 2000);
+                } else if (paymentMethod === 'online') {
+                    // Online payment - show redirect message and redirect to payment gateway
+                    placeOrderBtn.innerHTML = '<i class="fas fa-credit-card"></i> Redirecting to Payment...';
+                    showNotification('Redirecting to payment gateway...', 'success');
+                    
+                    setTimeout(() => {
+                        window.location.href = data.data.payment_url;
+                    }, 1500);
+                }
+            } else {
+                // Handle validation errors
+                placeOrderBtn.disabled = false;
+                placeOrderBtn.innerHTML = originalText;
+                
+                if (data.errors) {
+                    let errorMessage = 'Please fix the following errors:\n';
+                    for (const [field, messages] of Object.entries(data.errors)) {
+                        errorMessage += `• ${messages.join(', ')}\n`;
+                    }
+                    showNotification(errorMessage, 'error');
+                } else {
+                    showNotification(data.message || 'There was an error placing your order. Please try again.', 'error');
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            placeOrderBtn.disabled = false;
+            placeOrderBtn.innerHTML = originalText;
+            showNotification('There was an error placing your order. Please try again.', 'error');
+        });
+    }
+
+    function showNotification(message, type) {
+        // Create and show a notification
+        const notification = document.createElement('div');
+        const bgColor = type === 'success' ? 'linear-gradient(135deg, #28a745, #20c997)' : 'linear-gradient(135deg, #dc3545, #c82333)';
+        const icon = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+        
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${bgColor};
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10000;
+            font-weight: 600;
+            animation: slideIn 0.3s ease-out;
+            max-width: 400px;
+            white-space: pre-line;
+        `;
+        notification.innerHTML = `<i class="${icon}"></i> ${message}`;
+        
+        // Add animation styles
+        if (!document.getElementById('notification-styles')) {
+            const style = document.createElement('style');
+            style.id = 'notification-styles';
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        document.body.appendChild(notification);
+        
+        // Remove notification after 5 seconds
+        setTimeout(() => {
+            notification.remove();
+        }, 5000);
+    }
+    </script>
 </body>
 
 </html>

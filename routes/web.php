@@ -3,12 +3,12 @@
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\OrderController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/store', [ProductController::class, 'index'])->name('store');
 Route::get('/cart', [CartController::class, 'index'])->name('cart');
-Route::get('/checkout', [CartController::class, 'checkout'])->name('checkout');
 
 // Cart API Routes
 Route::prefix('cart')->group(function () {
@@ -37,6 +37,19 @@ Route::prefix('api')->group(function () {
     });
     Route::post('/contact', [HomeController::class, 'contact']);
     Route::post('/order-confirmation', [HomeController::class, 'orderConfirmation']);
+});
+
+// Order Routes
+Route::prefix('order')->group(function () {
+    Route::post('/checkout', [OrderController::class, 'processCheckout'])->name('order.checkout');
+    Route::get('/success/{order}', [OrderController::class, 'orderSuccess'])->name('order.success');
+    Route::get('/failed/{order}', [OrderController::class, 'orderFailed'])->name('order.failed');
+});
+
+// PhonePe Payment Gateway Routes
+Route::prefix('phonepe')->group(function () {
+    Route::post('/callback', [OrderController::class, 'phonePeCallback'])->name('phonepe.callback');
+    Route::any('/redirect', [OrderController::class, 'phonePeRedirect'])->name('phonepe.redirect');
 });
 
 Route::get('/user', function () {
