@@ -1,0 +1,6 @@
+{
+    "require": {
+        "laravel/sanctum": "^4.2",
+        "intervention/image": "^3.11"
+    }
+}

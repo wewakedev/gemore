@@ -896,6 +896,277 @@ class Store {
   }
 }
 
+document.addEventListener("DOMContentLoaded", function () {
+  // Product Image Sliders
+  const sliders = document.querySelectorAll(".product-image-slider");
+
+  sliders.forEach((slider) => {
+    const images = slider.querySelectorAll("img");
+    const dots = slider.querySelectorAll(".slider-dot");
+    let currentIndex = 0;
+
+    // Initialize first image
+    images[0].classList.add("active");
+    dots[0].classList.add("active");
+
+    // Hide other images
+    for (let i = 1; i < images.length; i++) {
+      images[i].classList.remove("active");
+    }
+
+    // Add click handlers to dots
+    dots.forEach((dot, index) => {
+      dot.addEventListener("click", () => {
+        images[currentIndex].classList.remove("active");
+        dots[currentIndex].classList.remove("active");
+
+        currentIndex = index;
+
+        images[currentIndex].classList.add("active");
+        dots[currentIndex].classList.add("active");
+      });
+    });
+
+    // Auto-rotate images - REMOVED for manual control only
+  });
+
+  // Product Filtering
+  const filterBtns = document.querySelectorAll(".filter-btn");
+  const products = document.querySelectorAll("[data-category]");
+
+  filterBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      // Remove active class from all buttons
+      filterBtns.forEach((b) => b.classList.remove("active"));
+      // Add active class to clicked button
+      btn.classList.add("active");
+
+      const category = btn.getAttribute("data-filter");
+
+      products.forEach((product) => {
+        if (
+          category === "all" ||
+          product.getAttribute("data-category") === category
+        ) {
+          product.style.display = "block";
+        } else {
+          product.style.display = "none";
+        }
+      });
+    });
+  });
+
+  // Product Variant Selection
+  const variantOptions = document.querySelectorAll(
+    '.variant-option input[type="radio"]'
+  );
+
+  variantOptions.forEach((option) => {
+    option.addEventListener("change", function () {
+      const productCard = this.closest(".product-showcase-item");
+      const priceElement = productCard.querySelector(".product-price");
+      const basePrice = this.value === "1kg" ? 2499 : 4499;
+
+      priceElement.textContent = `₹${basePrice.toLocaleString("en-IN")}`;
+    });
+  });
+
+  // Cart Functionality
+  const cartToggle = document.getElementById("cart-toggle");
+  const cartSidebar = document.getElementById("cart-sidebar");
+  const closeCart = document.getElementById("close-cart");
+  const cartItems = document.getElementById("cart-items");
+  const cartCount = document.getElementById("cart-count");
+  const cartSubtotal = document.getElementById("cart-subtotal");
+  const cartTotal = document.getElementById("cart-total");
+  const clearCart = document.getElementById("clear-cart");
+  const addToCartButtons = document.querySelectorAll(".btn-add-to-cart");
+
+  let cart = [];
+
+  // Toggle cart sidebar
+  cartToggle.addEventListener("click", (e) => {
+    e.preventDefault();
+    cartSidebar.classList.add("active");
+  });
+
+  closeCart.addEventListener("click", () => {
+    cartSidebar.classList.remove("active");
+  });
+
+  // Add to cart functionality
+  addToCartButtons.forEach((button) => {
+    button.addEventListener("click", function () {
+      const productCard = this.closest(".product-showcase-item");
+      const product = {
+        name: productCard.querySelector("h3").textContent,
+        variant:
+          productCard.querySelector(".variant-option input:checked")?.value ||
+          "default",
+        price: parseInt(
+          productCard
+            .querySelector(".product-price")
+            .textContent.replace(/[^0-9]/g, "")
+        ),
+        image: productCard.querySelector("img.active").src,
+        quantity: 1,
+      };
+
+      addToCart(product);
+
+      // Show added animation
+      const originalText = button.textContent;
+      button.classList.add("added");
+      button.textContent = "Added ✓";
+      button.disabled = true;
+
+      setTimeout(() => {
+        button.classList.remove("added");
+        button.textContent = originalText;
+        button.disabled = false;
+      }, 2000);
+    });
+  });
+
+  function addToCart(product) {
+    const existingItem = cart.find(
+      (item) => item.name === product.name && item.variant === product.variant
+    );
+
+    if (existingItem) {
+      existingItem.quantity++;
+    } else {
+      cart.push(product);
+    }
+
+    updateCart();
+  }
+
+  function updateCart() {
+    // Update cart count
+    cartCount.textContent = cart.reduce(
+      (total, item) => total + item.quantity,
+      0
+    );
+
+    // Update cart items display
+    cartItems.innerHTML = cart
+      .map(
+        (item) => `
+      <div class="cart-item">
+        <img src="${item.image}" alt="${item.name}" width="60" height="60">
+        <div class="cart-item-details">
+          <h4>${item.name}</h4>
+          ${
+            item.variant !== "default"
+              ? `<span class="variant">${item.variant}</span>`
+              : ""
+          }
+          <div class="quantity">
+            <button class="quantity-btn minus" data-name="${
+              item.name
+            }" data-variant="${item.variant}">-</button>
+            <span>${item.quantity}</span>
+            <button class="quantity-btn plus" data-name="${
+              item.name
+            }" data-variant="${item.variant}">+</button>
+          </div>
+        </div>
+        <div class="cart-item-price">₹${(
+          item.price * item.quantity
+        ).toLocaleString("en-IN")}</div>
+        <button class="remove-item" data-name="${item.name}" data-variant="${
+          item.variant
+        }">×</button>
+      </div>
+    `
+      )
+      .join("");
+
+    // Update totals
+    const subtotal = cart.reduce(
+      (total, item) => total + item.price * item.quantity,
+      0
+    );
+    cartSubtotal.textContent = subtotal.toLocaleString("en-IN");
+    cartTotal.textContent = subtotal.toLocaleString("en-IN");
+
+    // Show/hide empty cart message
+    const emptyCart = document.getElementById("cart-empty");
+    if (cart.length === 0) {
+      emptyCart.style.display = "block";
+      cartItems.style.display = "none";
+    } else {
+      emptyCart.style.display = "none";
+      cartItems.style.display = "block";
+    }
+
+    // Add event listeners to quantity buttons and remove buttons
+    document.querySelectorAll(".quantity-btn").forEach((btn) => {
+      btn.addEventListener("click", function () {
+        const name = this.getAttribute("data-name");
+        const variant = this.getAttribute("data-variant");
+        const item = cart.find((i) => i.name === name && i.variant === variant);
+
+        if (this.classList.contains("plus")) {
+          item.quantity++;
+        } else if (this.classList.contains("minus") && item.quantity > 1) {
+          item.quantity--;
+        }
+
+        updateCart();
+      });
+    });
+
+    document.querySelectorAll(".remove-item").forEach((btn) => {
+      btn.addEventListener("click", function () {
+        const name = this.getAttribute("data-name");
+        const variant = this.getAttribute("data-variant");
+        cart = cart.filter((i) => !(i.name === name && i.variant === variant));
+        updateCart();
+      });
+    });
+  }
+
+  // Clear cart
+  clearCart.addEventListener("click", () => {
+    cart = [];
+    updateCart();
+  });
+
+  // Sort functionality
+  const sortSelect = document.getElementById("sort-select");
+
+  sortSelect.addEventListener("change", function () {
+    const products = Array.from(document.querySelectorAll("[data-category]"));
+    const container = document.getElementById("products-container");
+
+    products.sort((a, b) => {
+      const priceA = parseInt(
+        a.querySelector(".product-price").textContent.replace(/[^0-9]/g, "")
+      );
+      const priceB = parseInt(
+        b.querySelector(".product-price").textContent.replace(/[^0-9]/g, "")
+      );
+      const nameA = a.querySelector("h3").textContent;
+      const nameB = b.querySelector("h3").textContent;
+
+      switch (this.value) {
+        case "price-low":
+          return priceA - priceB;
+        case "price-high":
+          return priceB - priceA;
+        case "name":
+          return nameA.localeCompare(nameB);
+        default:
+          return 0;
+      }
+    });
+
+    products.forEach((product) => container.appendChild(product));
+  });
+});
+
 // Initialize store when DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
   window.store = new Store();

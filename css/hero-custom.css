@@ -16,7 +16,6 @@ underline; }
 /* Shop Now Button */
 .shop-now-btn {
   display: inline-block;
-  background: linear-gradient(45deg, #456ef7, #ff6600);
   color: white;
   padding: 15px 30px;
   border-radius: 25px;
@@ -25,7 +24,8 @@ underline; }
   font-size: 1.1rem;
   margin-top: 20px;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(69, 110, 247, 0.3);
+  border: 1px solid #fff;
+  box-shadow: 0 5px 50px rgb(255 255 255);
 }
 
 .shop-now-btn:hover {

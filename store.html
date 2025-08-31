@@ -44,6 +44,7 @@
     <link rel="stylesheet" href="css/responsive.css" />
     <link rel="stylesheet" href="css/navbar-custom.css" />
     <link rel="stylesheet" href="css/store.css" />
+    <link rel="stylesheet" href="css/theme.css" />
 
     <!-- Font Awesome -->
     <link
@@ -59,23 +60,38 @@
     <nav class="custom-navbar">
       <div class="navbar-container">
         <div class="navbar-logo">Ge More Nutralife</div>
+
+        <!-- Mobile Icons (Always Visible on Mobile) -->
+        <div class="mobile-nav-icons">
+          <a href="#" class="cart-toggle">
+            <i class="fas fa-shopping-cart"></i>
+            <span class="cart-count" id="mobile-cart-count">0</span>
+          </a>
+          <a href="#" class="wishlist-toggle">
+            <i class="fas fa-heart"></i>
+            <span class="wishlist-count" id="mobile-wishlist-count">0</span>
+          </a>
+        </div>
+
         <div class="navbar-toggle" id="navbar-toggle">
           <span></span><span></span><span></span>
         </div>
+
         <ul class="navbar-links" id="navbar-links">
           <li><a href="index.html">Home</a></li>
           <li><a href="store.html" class="active">Store</a></li>
+          <li><a href="cart.html">Cart</a></li>
           <li><a href="index.html#products">Products</a></li>
           <li><a href="index.html#about">About Us</a></li>
           <li><a href="index.html#contact">Contact Us</a></li>
           <li class="cart-nav">
-            <a href="#" id="cart-toggle">
+            <a href="#" class="cart-toggle">
               <i class="fas fa-shopping-cart"></i>
               <span class="cart-count" id="cart-count">0</span>
             </a>
           </li>
           <li class="wishlist-nav">
-            <a href="#" id="wishlist-toggle">
+            <a href="#" class="wishlist-toggle">
               <i class="fas fa-heart"></i>
               <span class="wishlist-count" id="wishlist-count">0</span>
             </a>
@@ -117,9 +133,6 @@
                   <button class="filter-btn" data-filter="creatine">
                     Creatine
                   </button>
-                  <button class="filter-btn" data-filter="premium">
-                    Premium
-                  </button>
                 </div>
               </div>
               <div class="filter-right">
@@ -143,7 +156,335 @@
     <section class="products-grid">
       <div class="container">
         <div class="row" id="products-container">
-          <!-- Products will be dynamically loaded here -->
+          <!-- Whey Protein Chocolate -->
+          <div class="col-lg-4 col-md-6 mb-4" data-category="protein">
+            <div class="product-showcase-item">
+              <div class="product-image-slider" data-product="whey-chocolate">
+                <div class="product-tags">
+                  <span class="product-tag tag-new">New</span>
+                  <span class="product-tag tag-discount">20% Off</span>
+                </div>
+                <button class="wishlist-btn" aria-label="Add to wishlist">
+                  <i class="fas fa-heart"></i>
+                </button>
+                <img
+                  src="images/WHEY PROTEIN CHOCOLATE 1KG 1.png"
+                  alt="Nutralife Whey Protein Chocolate Flavor - View 1"
+                  class="active"
+                />
+                <img
+                  src="images/WHEY PROTEIN CHOCOLATE 1KG 2.png"
+                  alt="Nutralife Whey Protein Chocolate Flavor - View 2"
+                />
+                <img
+                  src="images/WHEY PROTEIN CHOCOLATE 1KG 3.png"
+                  alt="Nutralife Whey Protein Chocolate Flavor - View 3"
+                />
+                <div class="slider-nav">
+                  <span class="slider-dot active"></span>
+                  <span class="slider-dot"></span>
+                  <span class="slider-dot"></span>
+                </div>
+              </div>
+              <div class="product-info">
+                <h3>Whey Protein</h3>
+                <span class="product-subtitle">Chocolate Flavor</span>
+                <p class="product-description">
+                  Premium quality whey protein isolate for muscle building and
+                  recovery
+                </p>
+                <div class="product-variants">
+                  <div class="variant-option">
+                    <input
+                      type="radio"
+                      name="whey-choco-size-store"
+                      id="whey-choco-1kg-store"
+                      value="1kg"
+                      checked
+                    />
+                    <label for="whey-choco-1kg-store">1 KG</label>
+                  </div>
+                  <div class="variant-option">
+                    <input
+                      type="radio"
+                      name="whey-choco-size-store"
+                      id="whey-choco-2kg-store"
+                      value="2kg"
+                    />
+                    <label for="whey-choco-2kg-store">2 KG</label>
+                  </div>
+                </div>
+                <div class="product-price">
+                  <span class="original-price">₹2,999</span>
+                  <span class="discount-price">₹2,499</span>
+                </div>
+                <div class="product-actions">
+                  <button class="btn btn-secondary btn-add-to-cart">
+                    Add to Cart
+                  </button>
+                  <button class="btn btn-primary btn-buy-now">Buy Now</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Whey Protein Kesar Kulfi -->
+          <div class="col-lg-4 col-md-6 mb-4" data-category="protein">
+            <div class="product-showcase-item">
+              <div class="product-image-slider" data-product="whey-kesar">
+                <div class="product-tags">
+                  <span class="product-tag tag-new">New</span>
+                  <span class="product-tag tag-sale">Best Seller</span>
+                </div>
+                <button class="wishlist-btn" aria-label="Add to wishlist">
+                  <i class="fas fa-heart"></i>
+                </button>
+                <img
+                  src="images/WHEY PROTEIN KESAR KULFI 1KG 1.png"
+                  alt="Nutralife Whey Protein Kesar Kulfi Flavor - View 1"
+                  class="active"
+                />
+                <img
+                  src="images/WHEY PROTEIN KESAR KULFI 1KG 2.png"
+                  alt="Nutralife Whey Protein Kesar Kulfi Flavor - View 2"
+                />
+                <img
+                  src="images/WHEY PROTEIN KESAR KULFI 1KG 3.png"
+                  alt="Nutralife Whey Protein Kesar Kulfi Flavor - View 3"
+                />
+                <div class="slider-nav">
+                  <span class="slider-dot active"></span>
+                  <span class="slider-dot"></span>
+                  <span class="slider-dot"></span>
+                </div>
+              </div>
+              <div class="product-info">
+                <h3>Whey Protein</h3>
+                <span class="product-subtitle">Kesar Kulfi Flavor</span>
+                <p class="product-description">
+                  Rich and creamy kesar-flavored protein for enhanced taste
+                </p>
+                <div class="product-variants">
+                  <div class="variant-option">
+                    <input
+                      type="radio"
+                      name="whey-kesar-size-store"
+                      id="whey-kesar-1kg-store"
+                      value="1kg"
+                      checked
+                    />
+                    <label for="whey-kesar-1kg-store">1 KG</label>
+                  </div>
+                  <div class="variant-option">
+                    <input
+                      type="radio"
+                      name="whey-kesar-size-store"
+                      id="whey-kesar-2kg-store"
+                      value="2kg"
+                    />
+                    <label for="whey-kesar-2kg-store">2 KG</label>
+                  </div>
+                </div>
+                <div class="product-price">₹2,499</div>
+                <div class="product-actions">
+                  <button class="btn btn-secondary btn-add-to-cart">
+                    Add to Cart
+                  </button>
+                  <button class="btn btn-primary btn-buy-now">Buy Now</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pre-Workout Tangy Orange -->
+          <div class="col-lg-4 col-md-6 mb-4" data-category="preworkout">
+            <div class="product-showcase-item">
+              <div class="product-image-slider" data-product="pre-orange">
+                <div class="product-tags">
+                  <span class="product-tag tag-discount">15% Off</span>
+                </div>
+                <button class="wishlist-btn" aria-label="Add to wishlist">
+                  <i class="fas fa-heart"></i>
+                </button>
+                <img
+                  src="images/PRE WORKOUT TANGY ORANGE 1.png"
+                  alt="Nutralife Pre-Workout Tangy Orange - View 1"
+                  class="active"
+                />
+                <img
+                  src="images/PRE WORKOUT TANGY ORANGE 2.png"
+                  alt="Nutralife Pre-Workout Tangy Orange - View 2"
+                />
+                <img
+                  src="images/PRE WORKOUT TANGY ORANGE 3.png"
+                  alt="Nutralife Pre-Workout Tangy Orange - View 3"
+                />
+                <div class="slider-nav">
+                  <span class="slider-dot active"></span>
+                  <span class="slider-dot"></span>
+                  <span class="slider-dot"></span>
+                </div>
+              </div>
+              <div class="product-info">
+                <h3>Pre-Workout</h3>
+                <span class="product-subtitle">Tangy Orange Flavor</span>
+                <p class="product-description">
+                  Explosive energy blend to maximize your workout performance
+                </p>
+                <div class="product-price">
+                  <span class="original-price">₹1,799</span>
+                  <span class="discount-price">₹1,499</span>
+                </div>
+                <div class="product-actions">
+                  <button class="btn btn-secondary btn-add-to-cart">
+                    Add to Cart
+                  </button>
+                  <button class="btn btn-primary btn-buy-now">Buy Now</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pre-Workout Fruit Punch -->
+          <div class="col-lg-4 col-md-6 mb-4" data-category="preworkout">
+            <div class="product-showcase-item">
+              <div class="product-image-slider" data-product="pre-fruit">
+                <div class="product-tags">
+                  <span class="product-tag tag-sale">Popular</span>
+                </div>
+                <button class="wishlist-btn" aria-label="Add to wishlist">
+                  <i class="fas fa-heart"></i>
+                </button>
+                <img
+                  src="images/PRE WORKOUT FRUIT PUNCH 1.png"
+                  alt="Nutralife Pre-Workout Fruit Punch - View 1"
+                  class="active"
+                />
+                <img
+                  src="images/PRE WORKOUT FRUIT PUNCH 2.png"
+                  alt="Nutralife Pre-Workout Fruit Punch - View 2"
+                />
+                <img
+                  src="images/PRE WORKOUT FRUIT PUNCH 3.png"
+                  alt="Nutralife Pre-Workout Fruit Punch - View 3"
+                />
+                <div class="slider-nav">
+                  <span class="slider-dot active"></span>
+                  <span class="slider-dot"></span>
+                  <span class="slider-dot"></span>
+                </div>
+              </div>
+              <div class="product-info">
+                <h3>Pre-Workout</h3>
+                <span class="product-subtitle">Fruit Punch Flavor</span>
+                <p class="product-description">
+                  Enhanced focus and intensity for your training sessions
+                </p>
+                <div class="product-price">₹1,499</div>
+                <div class="product-actions">
+                  <button class="btn btn-secondary btn-add-to-cart">
+                    Add to Cart
+                  </button>
+                  <button class="btn btn-primary btn-buy-now">Buy Now</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Creatine Tangy Orange -->
+          <div class="col-lg-4 col-md-6 mb-4" data-category="creatine">
+            <div class="product-showcase-item">
+              <div class="product-image-slider" data-product="creatine-orange">
+                <div class="product-tags">
+                  <span class="product-tag tag-new">New</span>
+                </div>
+                <button class="wishlist-btn" aria-label="Add to wishlist">
+                  <i class="fas fa-heart"></i>
+                </button>
+                <img
+                  src="images/CREATINE TANGY ORANGE 1.png"
+                  alt="Nutralife Creatine Tangy Orange - View 1"
+                  class="active"
+                />
+                <img
+                  src="images/CREATINE TANGY ORANGE 2.png"
+                  alt="Nutralife Creatine Tangy Orange - View 2"
+                />
+                <img
+                  src="images/CREATINE TANGY ORANGE 3.png"
+                  alt="Nutralife Creatine Tangy Orange - View 3"
+                />
+                <div class="slider-nav">
+                  <span class="slider-dot active"></span>
+                  <span class="slider-dot"></span>
+                  <span class="slider-dot"></span>
+                </div>
+              </div>
+              <div class="product-info">
+                <h3>Creatine</h3>
+                <span class="product-subtitle">Tangy Orange Flavor</span>
+                <p class="product-description">
+                  Pure creatine monohydrate for strength and power
+                </p>
+                <div class="product-price">₹999</div>
+                <div class="product-actions">
+                  <button class="btn btn-secondary btn-add-to-cart">
+                    Add to Cart
+                  </button>
+                  <button class="btn btn-primary btn-buy-now">Buy Now</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Creatine Unflavored -->
+          <div class="col-lg-4 col-md-6 mb-4" data-category="creatine">
+            <div class="product-showcase-item">
+              <div
+                class="product-image-slider"
+                data-product="creatine-unflavored"
+              >
+                <div class="product-tags">
+                  <span class="product-tag tag-sale">Best Seller</span>
+                </div>
+                <button class="wishlist-btn" aria-label="Add to wishlist">
+                  <i class="fas fa-heart"></i>
+                </button>
+                <img
+                  src="images/CREATINE UNFLAVORED 1.png"
+                  alt="Nutralife Creatine Unflavored - View 1"
+                  class="active"
+                />
+                <img
+                  src="images/CREATINE UNFLAVORED 2.png"
+                  alt="Nutralife Creatine Unflavored - View 2"
+                />
+                <img
+                  src="images/CREATINE UNFLAVORED 3.png"
+                  alt="Nutralife Creatine Unflavored - View 3"
+                />
+                <div class="slider-nav">
+                  <span class="slider-dot active"></span>
+                  <span class="slider-dot"></span>
+                  <span class="slider-dot"></span>
+                </div>
+              </div>
+              <div class="product-info">
+                <h3>Creatine</h3>
+                <span class="product-subtitle">Unflavored</span>
+                <p class="product-description">
+                  Pure and natural creatine without any added flavors
+                </p>
+                <div class="product-price">₹999</div>
+                <div class="product-actions">
+                  <button class="btn btn-secondary btn-add-to-cart">
+                    Add to Cart
+                  </button>
+                  <button class="btn btn-primary btn-buy-now">Buy Now</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -166,16 +507,8 @@
         </div>
       </div>
       <div class="cart-footer">
-        <div class="cart-total">
-          <div class="total-line">
-            <span>Subtotal: ₹<span id="cart-subtotal">0</span></span>
-          </div>
-          <div class="total-line">
-            <span>Shipping: ₹<span id="cart-shipping">0</span></span>
-          </div>
-          <div class="total-line total-final">
-            <span>Total: ₹<span id="cart-total">0</span></span>
-          </div>
+        <div class="cart-total" id="cart-total">
+          <!-- Cart total will be dynamically loaded here -->
         </div>
         <div class="cart-actions">
           <button class="btn btn-outline" id="clear-cart">Clear Cart</button>
@@ -193,18 +526,7 @@
         </button>
       </div>
       <div class="wishlist-content">
-        <div class="wishlist-items" id="wishlist-items">
-          <!-- Wishlist items will be dynamically loaded here -->
-        </div>
-        <div class="wishlist-empty" id="wishlist-empty" style="display: none">
-          <i class="fas fa-heart"></i>
-          <p>Your wishlist is empty</p>
-        </div>
-      </div>
-      <div class="wishlist-footer">
-        <button class="btn btn-outline" id="clear-wishlist">
-          Clear Wishlist
-        </button>
+        <!-- Wishlist items will be dynamically loaded here -->
       </div>
     </div>
 
@@ -377,13 +699,56 @@
       </div>
     </div>
 
+    <!-- Cart Sidebar -->
+    <div class="cart-sidebar" id="cart-sidebar">
+      <div class="cart-header">
+        <h3>Shopping Cart</h3>
+        <button class="close-cart" id="close-cart">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="cart-content">
+        <div class="cart-items" id="cart-items">
+          <!-- Cart items will be dynamically loaded here -->
+        </div>
+        <div class="cart-empty" id="cart-empty" style="display: none">
+          <i class="fas fa-shopping-cart"></i>
+          <p>Your cart is empty</p>
+        </div>
+      </div>
+      <div class="cart-footer">
+        <div class="cart-total" id="cart-total">
+          <!-- Cart total will be dynamically loaded here -->
+        </div>
+        <div class="cart-actions">
+          <button class="btn btn-outline" id="clear-cart">Clear Cart</button>
+          <button class="btn btn-primary" id="checkout-btn">Checkout</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wishlist Sidebar -->
+    <div class="wishlist-sidebar" id="wishlist-sidebar">
+      <div class="wishlist-header">
+        <h3>Wishlist</h3>
+        <button class="close-wishlist" id="close-wishlist">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="wishlist-content">
+        <!-- Wishlist items will be dynamically loaded here -->
+      </div>
+    </div>
+
     <!-- Overlay -->
     <div class="overlay" id="overlay"></div>
 
     <!-- JavaScript Files -->
     <script src="js/jquery-3.0.0.min.js"></script>
     <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="js/frontend-api.js"></script>
     <script src="js/store.js"></script>
     <script src="js/optimized.js"></script>
+    <script src="js/cart.js"></script>
   </body>
 </html>

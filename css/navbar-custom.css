@@ -20,7 +20,7 @@ padding: 0 12px; } .navbar-links { position: absolute; top: 54px; left: 0;
 width: 100%; background: #fff; flex-direction: column; align-items: flex-start;
 gap: 0; max-height: 0; overflow: hidden; box-shadow: 0 8px 24px rgba(0, 0, 0,
 0.08); border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; }
-.navbar-links.active { max-height: 300px; transition: max-height 0.4s
+.navbar-links.active { max-height: 330px; transition: max-height 0.4s
 cubic-bezier(0.4, 0, 0.2, 1); } .navbar-links li { width: 100%; border-bottom:
 1px solid #eee; } .navbar-links li:last-child { border-bottom: none; }
 .navbar-links li a { display: block; width: 100%; padding: 16px 24px; font-size:
