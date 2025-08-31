@@ -84,6 +84,16 @@
             margin-bottom: 5px;
         }
 
+        .item-name a:hover {
+            color: #8b0000 !important;
+            text-decoration: underline !important;
+        }
+
+        .item-image a:hover img {
+            transform: scale(1.05);
+            transition: transform 0.3s ease;
+        }
+
         .item-variant {
             color: #8b0000;
             font-size: 0.9rem;
@@ -496,11 +506,17 @@
                             @foreach ($cartItems as $item)
                                 <div class="cart-item" data-product-id="{{ $item->product_id }}" data-variant-id="{{ $item->product_variant_id }}">
                                     <div class="item-image">
-                                        <img src="{{ $item->product->images && count($item->product->images) > 0 ? asset('images/' . $item->product->images[0]) : asset('images/placeholder.svg') }}"
-                                            alt="{{ $item->product->name }}" />
+                                        <a href="{{ route('products.show', $item->product->id) }}" style="display: block; width: 100%; height: 100%;">
+                                            <img src="{{ $item->product->images && count($item->product->images) > 0 ? asset('images/' . $item->product->images[0]) : asset('images/placeholder.svg') }}"
+                                                alt="{{ $item->product->name }}" />
+                                        </a>
                                     </div>
                                     <div class="item-details">
-                                        <div class="item-name">{{ $item->product->name }}</div>
+                                        <div class="item-name">
+                                            <a href="{{ route('products.show', $item->product->id) }}" style="color: inherit; text-decoration: none;">
+                                                {{ $item->product->name }}
+                                            </a>
+                                        </div>
                                         <div class="item-variant">
                                             {{ $item->productVariant ? $item->productVariant->name : ($item->product->defaultVariant ? $item->product->defaultVariant->name : 'Default') }}
                                         </div>

@@ -338,8 +338,8 @@
 
                                 <!-- Product Overlay -->
                                 <div class="product-overlay">
-                                    <button class="btn btn-quick-view" onclick="quickView({{ $product->id }})">
-                                        <i class="fas fa-eye"></i> Quick View
+                                    <button class="btn btn-quick-view" onclick="viewProduct({{ $product->id }})">
+                                        <i class="fas fa-eye"></i> View Product
                                     </button>
                                 </div>
 
@@ -743,9 +743,8 @@
             updateWishlistCount();
         }
 
-        function quickView(productId) {
-            // This would open a modal with product details
-            // For now, redirect to product page
+        function viewProduct(productId) {
+            // Navigate to product detail page
             window.location.href = `/products/${productId}`;
         }
 

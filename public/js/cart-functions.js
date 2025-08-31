@@ -552,10 +552,16 @@ window.CartFunctions.updateCartSidebarWithData = function (cartData) {
                     
                     return `<div class="cart-item-sidebar" data-id="${item.product_id}" data-variant-id="${variantId}">
                         <div class="cart-item-image">
-                            <img src="/images/${item.product.images[0] || "placeholder.svg"}" alt="${item.product.name}">
+                            <a href="/products/${item.product_id}" style="display: block; width: 100%; height: 100%;">
+                                <img src="/images/${item.product.images[0] || "placeholder.svg"}" alt="${item.product.name}">
+                            </a>
                         </div>
                         <div class="cart-item-details">
-                            <div class="cart-item-title">${item.product.name}</div>
+                            <div class="cart-item-title">
+                                <a href="/products/${item.product_id}" style="color: inherit; text-decoration: none;">
+                                    ${item.product.name}
+                                </a>
+                            </div>
                             <div class="cart-item-subtitle">${variantName ? `${variantName} - ` : ''}${item.product.description || ''}</div>
                             <div class="cart-item-price">₹${(variantPrice * item.quantity).toFixed(2)}</div>
                             <div class="quantity-controls">

@@ -736,8 +736,8 @@ class StoreManager {
                             '<div class="no-image"><i class="fas fa-image"></i></div>'
                         }
                         <div class="product-overlay">
-                            <button class="btn btn-quick-view" onclick="quickView(${product.id})">
-                                <i class="fas fa-eye"></i> Quick View
+                            <button class="btn btn-quick-view" onclick="viewProduct(${product.id})">
+                                <i class="fas fa-eye"></i> View Product
                             </button>
                         </div>
                         <div class="product-badges">
@@ -901,10 +901,9 @@ function toggleWishlist(productId) {
     alert('Wishlist functionality will be implemented');
 }
 
-function quickView(productId) {
-    // This will be implemented with proper product modal
-    console.log('Quick view for product:', productId);
-    alert('Quick view functionality will be implemented');
+function viewProduct(productId) {
+    // Navigate to product detail page
+    window.location.href = `/products/${productId}`;
 }
 
 function showNotification(message, type = 'info') {
