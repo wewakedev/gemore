@@ -182,7 +182,7 @@
                     <span>Tax:</span>
                     <span>₹0</span>
                 </div>
-                
+
                 <div class="coupon-section-sidebar">
                     <div class="coupon-input">
                         <input type="text" id="sidebar-coupon-code" placeholder="Coupon code">
@@ -198,6 +198,108 @@
                 <button class="btn btn-outline" id="clear-cart">Clear Cart</button>
                 <button class="btn btn-primary" id="checkout-btn">Checkout</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div class="checkout-modal" id="checkout-modal">
+        <div class="checkout-content">
+            <div class="checkout-header">
+                <h3>Checkout</h3>
+                <button class="close-checkout" id="close-checkout">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="checkout-form">
+                <div class="checkout-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4>Billing Information</h4>
+                            <div class="form-group">
+                                <label for="billing-name">Full Name *</label>
+                                <input type="text" id="billing-name" name="billing-name" required="">
+                            </div>
+                            <div class="form-group">
+                                <label for="billing-email">Email *</label>
+                                <input type="email" id="billing-email" name="billing-email" required="">
+                            </div>
+                            <div class="form-group">
+                                <label for="billing-phone">Phone *</label>
+                                <input type="tel" id="billing-phone" name="billing-phone" required="">
+                            </div>
+                            <div class="form-group">
+                                <label for="billing-address">Address *</label>
+                                <textarea id="billing-address" name="billing-address" rows="3" required=""></textarea>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="billing-city">City *</label>
+                                        <input type="text" id="billing-city" name="billing-city" required="">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="billing-pincode">Pincode *</label>
+                                        <input type="text" id="billing-pincode" name="billing-pincode"
+                                            required="">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>Payment Method</h4>
+                            <div class="payment-methods">
+                                <div class="payment-option">
+                                    <input type="radio" id="cod" name="payment-method" value="cod"
+                                        checked="">
+                                    <label for="cod">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                        Cash on Delivery
+                                    </label>
+                                </div>
+                                <div class="payment-option">
+                                    <input type="radio" id="online" name="payment-method" value="online">
+                                    <label for="online">
+                                        <i class="fas fa-credit-card"></i>
+                                        Online Payment
+                                    </label>
+                                </div>
+                            </div>
+
+                            <h4>Order Summary</h4>
+                            <div class="checkout-summary" id="checkout-summary">
+                                <div class="summary-row">
+                                    <span>Items (1):</span>
+                                    <span>₹2,499</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span>Shipping:</span>
+                                    <span>₹0</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span>Tax (GST):</span>
+                                    <span>₹450</span>
+                                </div>
+
+                                <hr>
+                                <div class="summary-row" style="font-weight: 600; font-size: 16px;">
+                                    <span>Total:</span>
+                                    <span>₹2,949</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="checkout-footer">
+                    <button type="button" class="btn btn-secondary" id="back-to-cart">
+                        Back to Cart
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="place-order">
+                        Place Order
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
