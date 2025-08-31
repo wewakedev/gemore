@@ -542,7 +542,7 @@
 
                 <div class="col-lg-4">
                     <!-- Cart Summary -->
-                    <div class="cart-summary">
+                    <div class="cart-summary" id="cart-summary" style="{{ $cartItems->count() > 0 ? '' : 'display: none;' }}">
                         <h4>Order Summary</h4>
                         <div class="summary-row">
                             <span>Subtotal:</span>
@@ -639,13 +639,16 @@
         function updateCartDisplay(cartData) {
             const cartItemsContainer = document.getElementById('cart-items-container');
             const emptyCart = document.getElementById('empty-cart');
+            const cartSummary = document.getElementById('cart-summary');
 
             if (cartData.items.length === 0) {
                 cartItemsContainer.style.display = 'none';
                 emptyCart.style.display = 'block';
+                cartSummary.style.display = 'none';
             } else {
                 cartItemsContainer.style.display = 'block';
                 emptyCart.style.display = 'none';
+                cartSummary.style.display = 'block';
 
                 // Update individual cart items
                 cartData.items.forEach(item => {
