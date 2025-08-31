@@ -39,7 +39,7 @@ class Product extends Model
         'is_featured' => 'boolean',
         'ratings_average' => 'decimal:2',
     ];
-    protected $appends = ['min_price', 'discount_price'];
+    protected $appends = ['min_price', 'discount_price', 'slug'];
 
     /**
      * Boot the model.
@@ -51,6 +51,24 @@ class Product extends Model
         static::creating(function ($product) {
             if (empty($product->sku)) {
                 $product->sku = 'GM-' . strtoupper(Str::random(8));
+            }
+            
+            // Generate slug if not provided
+            $seo = $product->seo ?? [];
+            if (empty($seo['slug']) && !empty($product->name)) {
+                $seo['slug'] = Str::slug($product->name);
+                $product->seo = $seo;
+            }
+        });
+
+        static::updating(function ($product) {
+            // Update slug if name changed and no custom slug is set
+            if ($product->isDirty('name')) {
+                $seo = $product->seo ?? [];
+                if (empty($seo['slug']) || $seo['slug'] === Str::slug($product->getOriginal('name'))) {
+                    $seo['slug'] = Str::slug($product->name);
+                    $product->seo = $seo;
+                }
             }
         });
     }
@@ -223,5 +241,29 @@ class Product extends Model
         $this->ratings_count = $reviews->count();
         $this->ratings_average = $reviews->avg('rating') ?? 0;
         $this->save();
+    }
+
+    /**
+     * Get the route key for the model.
+     */
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
+
+    /**
+     * Retrieve the model for a bound value.
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        return $this->where('seo->slug', $value)->where('is_active', true)->firstOrFail();
+    }
+
+    /**
+     * Get the slug from the SEO data.
+     */
+    public function getSlugAttribute()
+    {
+        return $this->seo['slug'] ?? null;
     }
 } 

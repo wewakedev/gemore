@@ -780,13 +780,13 @@ class CartManager {
         (item) => `
       <div class="cart-item-sidebar" data-id="${item.id}">
         <div class="cart-item-image">
-          <a href="/products/${item.id}" style="display: block; width: 100%; height: 100%;">
+          <a href="/products/${item.slug || item.id}" style="display: block; width: 100%; height: 100%;">
             <img src="${item.image}" alt="${item.title}">
           </a>
         </div>
         <div class="cart-item-details">
           <div class="cart-item-title">
-            <a href="/products/${item.id}" style="color: inherit; text-decoration: none;">
+            <a href="/products/${item.slug || item.id}" style="color: inherit; text-decoration: none;">
               ${item.title}
             </a>
           </div>

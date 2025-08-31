@@ -736,7 +736,7 @@ class StoreManager {
                             '<div class="no-image"><i class="fas fa-image"></i></div>'
                         }
                         <div class="product-overlay">
-                            <button class="btn btn-quick-view" onclick="viewProduct(${product.id})">
+                            <button class="btn btn-quick-view" onclick="viewProduct(${product.id}, '${product.slug || (product.seo && product.seo.slug) || ''}')">
                                 <i class="fas fa-eye"></i> View Product
                             </button>
                         </div>
@@ -901,9 +901,17 @@ function toggleWishlist(productId) {
     alert('Wishlist functionality will be implemented');
 }
 
-function viewProduct(productId) {
-    // Navigate to product detail page
-    window.location.href = `/products/${productId}`;
+function viewProduct(productId, productSlug) {
+    // Navigate to product detail page using slug for better SEO
+    console.log('viewProduct called with:', { productId, productSlug });
+    if (productSlug && productSlug.trim() !== '') {
+        console.log('Using slug:', productSlug);
+        window.location.href = `/products/${productSlug}`;
+    } else {
+        console.log('Falling back to ID:', productId);
+        // Fallback to ID if slug is not available
+        window.location.href = `/products/${productId}`;
+    }
 }
 
 function showNotification(message, type = 'info') {

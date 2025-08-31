@@ -506,14 +506,14 @@
                             @foreach ($cartItems as $item)
                                 <div class="cart-item" data-product-id="{{ $item->product_id }}" data-variant-id="{{ $item->product_variant_id }}">
                                     <div class="item-image">
-                                        <a href="{{ route('products.show', $item->product->id) }}" style="display: block; width: 100%; height: 100%;">
+                                        <a href="{{ route('products.show', $item->product->slug ?: $item->product->id) }}" style="display: block; width: 100%; height: 100%;">
                                             <img src="{{ $item->product->images && count($item->product->images) > 0 ? asset('images/' . $item->product->images[0]) : asset('images/placeholder.svg') }}"
                                                 alt="{{ $item->product->name }}" />
                                         </a>
                                     </div>
                                     <div class="item-details">
                                         <div class="item-name">
-                                            <a href="{{ route('products.show', $item->product->id) }}" style="color: inherit; text-decoration: none;">
+                                            <a href="{{ route('products.show', $item->product->slug ?: $item->product->id) }}" style="color: inherit; text-decoration: none;">
                                                 {{ $item->product->name }}
                                             </a>
                                         </div>

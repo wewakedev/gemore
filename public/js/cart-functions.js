@@ -550,15 +550,19 @@ window.CartFunctions.updateCartSidebarWithData = function (cartData) {
                     const variantName = item.product_variant?.name || '';
                     const variantId = item.product_variant_id || '';
                     
+                    const productSlug = item.product.slug || (item.product.seo && item.product.seo.slug) || null;
+                    const productUrl = productSlug ? `/products/${productSlug}` : `/products/${item.product_id}`;
+                    console.log('Cart sidebar product URL:', { productId: item.product_id, slug: productSlug, url: productUrl });
+                    
                     return `<div class="cart-item-sidebar" data-id="${item.product_id}" data-variant-id="${variantId}">
                         <div class="cart-item-image">
-                            <a href="/products/${item.product_id}" style="display: block; width: 100%; height: 100%;">
+                            <a href="${productUrl}" style="display: block; width: 100%; height: 100%;">
                                 <img src="/images/${item.product.images[0] || "placeholder.svg"}" alt="${item.product.name}">
                             </a>
                         </div>
                         <div class="cart-item-details">
                             <div class="cart-item-title">
-                                <a href="/products/${item.product_id}" style="color: inherit; text-decoration: none;">
+                                <a href="${productUrl}" style="color: inherit; text-decoration: none;">
                                     ${item.product.name}
                                 </a>
                             </div>
