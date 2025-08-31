@@ -638,7 +638,7 @@ window.CartFunctions.removeQuantityControls = function (productId) {
     const btn = document.createElement("button");
     btn.className = "btn btn-add-to-cart";
     btn.setAttribute("onclick", `addToCart(${productId})`);
-    btn.textContent = "Add to Cart";
+    btn.innerHTML = '<i class="fas fa-shopping-cart"></i> Add to Cart';
     controlDiv.parentNode.replaceChild(btn, controlDiv);
 };
 
@@ -653,6 +653,19 @@ window.CartFunctions.renderProductCartButtons = function () {
 
 // Render quantity controls with provided data (no API call)
 window.CartFunctions.renderProductCartButtonsWithData = function (cartData) {
+    // First, update existing quantity controls
+    cartData.items.forEach((item) => {
+        // Look for existing quantity input for this product
+        const existingInput = document.querySelector(
+            `.quantity-input[data-product-id="${item.product_id}"]`
+        );
+        if (existingInput && parseInt(existingInput.value) !== item.quantity) {
+            // Update the input value to match cart quantity
+            existingInput.value = item.quantity;
+        }
+    });
+
+    // Then, replace add-to-cart buttons with quantity controls for items in cart
     cartData.items.forEach((item) => {
         // find add-to-cart button
         const btn = document.querySelector(
@@ -666,6 +679,18 @@ window.CartFunctions.renderProductCartButtonsWithData = function (cartData) {
                     <input type="number" class="quantity-input" data-product-id="${item.product_id}" value="${item.quantity}" min="1" onchange="CartFunctions.updateQuantity(${item.product_id}, this.value)">
                     <button class="quantity-btn" onclick="CartFunctions.changeQuantity(${item.product_id}, 1)"><i class="fas fa-plus"></i></button>`;
             btn.parentNode.replaceChild(control, btn);
+        }
+    });
+
+    // Finally, revert quantity controls back to add-to-cart buttons for items no longer in cart
+    const allQuantityInputs = document.querySelectorAll('.quantity-input[data-product-id]');
+    allQuantityInputs.forEach((input) => {
+        const productId = parseInt(input.getAttribute('data-product-id'));
+        const isInCart = cartData.items.some(item => item.product_id === productId);
+        
+        if (!isInCart) {
+            // This product is no longer in cart, revert to add-to-cart button
+            this.removeQuantityControls(productId);
         }
     });
 };
