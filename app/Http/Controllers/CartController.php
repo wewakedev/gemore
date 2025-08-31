@@ -33,11 +33,13 @@ class CartController extends Controller
     public function add(Request $request, $productId): JsonResponse
     {
         $request->validate([
-            'quantity' => 'sometimes|integer|min:1'
+            'quantity' => 'sometimes|integer|min:1',
+            'variant_id' => 'sometimes|integer|exists:product_variants,id'
         ]);
 
         $cartToken = $request->cookie('cart_token');
         $quantity = $request->input('quantity', 1);
+        $variantId = $request->input('variant_id');
 
         // Check if product exists
         $product = Product::find($productId);
@@ -48,9 +50,21 @@ class CartController extends Controller
             ], 404);
         }
 
-        // Check if product is already in cart
+        // If variant_id is provided, validate it belongs to the product
+        if ($variantId) {
+            $variant = $product->variants()->find($variantId);
+            if (!$variant) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid variant for this product'
+                ], 400);
+            }
+        }
+
+        // Check if product with same variant is already in cart
         $existingCartItem = Cart::where('cart_token', $cartToken)
             ->where('product_id', $productId)
+            ->where('product_variant_id', $variantId)
             ->first();
 
         if ($existingCartItem) {
@@ -62,6 +76,7 @@ class CartController extends Controller
             Cart::create([
                 'cart_token' => $cartToken,
                 'product_id' => $productId,
+                'product_variant_id' => $variantId,
                 'quantity' => $quantity
             ]);
             $message = 'Product added to cart successfully';
@@ -89,15 +104,33 @@ class CartController extends Controller
     public function update(Request $request, $productId): JsonResponse
     {
         $request->validate([
-            'quantity' => 'required|integer|min:1'
+            'quantity' => 'required|integer|min:1',
+            'variant_id' => 'sometimes|integer|exists:product_variants,id'
         ]);
 
         $cartToken = $request->cookie('cart_token');
         $quantity = $request->input('quantity');
+        $variantId = $request->input('variant_id');
+
+        // Debug logging
+        \Log::info('Cart Update Request', [
+            'product_id' => $productId,
+            'variant_id' => $variantId,
+            'quantity' => $quantity,
+            'cart_token' => $cartToken
+        ]);
 
         $cartItem = Cart::where('cart_token', $cartToken)
             ->where('product_id', $productId)
+            ->where('product_variant_id', $variantId)
             ->first();
+
+        // Debug logging
+        \Log::info('Cart Item Found', [
+            'found' => $cartItem ? true : false,
+            'current_quantity' => $cartItem ? $cartItem->quantity : null,
+            'cart_item_id' => $cartItem ? $cartItem->id : null
+        ]);
 
         if (!$cartItem) {
             return response()->json([
@@ -129,10 +162,16 @@ class CartController extends Controller
      */
     public function remove(Request $request, $productId): JsonResponse
     {
+        $request->validate([
+            'variant_id' => 'sometimes|integer|exists:product_variants,id'
+        ]);
+
         $cartToken = $request->cookie('cart_token');
+        $variantId = $request->input('variant_id');
 
         $deleted = Cart::where('cart_token', $cartToken)
             ->where('product_id', $productId)
+            ->where('product_variant_id', $variantId)
             ->delete();
 
         if (!$deleted) {

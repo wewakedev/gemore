@@ -51,11 +51,22 @@ window.CartFunctions = {
      * Update product quantity in cart
      * @param {number} productId - The product ID to update
      * @param {number} quantity - New quantity
+     * @param {string} variantId - Optional variant ID
      */
-    updateQuantity: function (productId, quantity) {
+    updateQuantity: function (productId, quantity, variantId = null) {
         if (quantity <= 0) {
-            this.removeFromCart(productId);
+            this.removeFromCart(productId, variantId);
             return;
+        }
+
+        // Convert string "null" to actual null
+        if (variantId === "null" || variantId === "") {
+            variantId = null;
+        }
+
+        const requestBody = { quantity: quantity };
+        if (variantId) {
+            requestBody.variant_id = variantId;
         }
 
         fetch(`/cart/update/${productId}`, {
@@ -66,7 +77,7 @@ window.CartFunctions = {
                     .querySelector('meta[name="csrf-token"]')
                     .getAttribute("content"),
             },
-            body: JSON.stringify({ quantity: quantity }),
+            body: JSON.stringify(requestBody),
         })
             .then((response) => response.json())
             .then((data) => {
@@ -90,8 +101,19 @@ window.CartFunctions = {
     /**
      * Remove product from cart
      * @param {number} productId - The product ID to remove
+     * @param {string} variantId - Optional variant ID
      */
-    removeFromCart: function (productId) {
+    removeFromCart: function (productId, variantId = null) {
+        // Convert string "null" to actual null
+        if (variantId === "null" || variantId === "") {
+            variantId = null;
+        }
+
+        const requestBody = {};
+        if (variantId) {
+            requestBody.variant_id = variantId;
+        }
+
         fetch(`/cart/remove/${productId}`, {
             method: "DELETE",
             headers: {
@@ -100,6 +122,7 @@ window.CartFunctions = {
                     .querySelector('meta[name="csrf-token"]')
                     .getAttribute("content"),
             },
+            body: JSON.stringify(requestBody),
         })
             .then((response) => response.json())
             .then((data) => {
@@ -240,10 +263,11 @@ window.CartFunctions = {
      * Buy now functionality - add to cart and open checkout modal
      * @param {number} productId - The product ID to buy
      * @param {number} quantity - Quantity to buy (default: 1)
+     * @param {string} variantId - Optional variant ID
      */
-    buyNow: function (productId, quantity = 1) {
+    buyNow: function (productId, quantity = 1, variantId = null) {
         // First add to cart
-        this.addToCart(productId, quantity);
+        this.addToCart(productId, quantity, variantId);
 
         // Then open checkout modal after a short delay
         setTimeout(() => {
@@ -521,29 +545,34 @@ window.CartFunctions.updateCartSidebarWithData = function (cartData) {
         emptyContainer.style.display = "none";
         itemsContainer.innerHTML = cartData.items
             .map(
-                (item) =>
-                    `<div class="cart-item-sidebar" data-id="${item.product_id}">
+                (item) => {
+                    const variantPrice = item.product_variant?.price || item.product.default_variant?.price || item.product.price || 0;
+                    const variantName = item.product_variant?.name || '';
+                    const variantId = item.product_variant_id || '';
+                    
+                    return `<div class="cart-item-sidebar" data-id="${item.product_id}" data-variant-id="${variantId}">
                         <div class="cart-item-image">
                             <img src="/images/${item.product.images[0] || "placeholder.svg"}" alt="${item.product.name}">
                         </div>
                         <div class="cart-item-details">
                             <div class="cart-item-title">${item.product.name}</div>
-                            <div class="cart-item-subtitle">${item.product.description || ''}</div>
-                            <div class="cart-item-price">₹${(item.product.default_variant?.price || item.product.price) * item.quantity}</div>
+                            <div class="cart-item-subtitle">${variantName ? `${variantName} - ` : ''}${item.product.description || ''}</div>
+                            <div class="cart-item-price">₹${(variantPrice * item.quantity).toFixed(2)}</div>
                             <div class="quantity-controls">
-                                <button class="quantity-btn minus" data-id="${item.product_id}">
+                                <button class="quantity-btn minus" data-id="${item.product_id}" data-variant-id="${variantId}">
                                     <i class="fas fa-minus"></i>
                                 </button>
                                 <span class="quantity-display">${item.quantity}</span>
-                                <button class="quantity-btn plus" data-id="${item.product_id}">
+                                <button class="quantity-btn plus" data-id="${item.product_id}" data-variant-id="${variantId}">
                                     <i class="fas fa-plus"></i>
                                 </button>
                             </div>
                         </div>
-                        <button class="remove-item" data-id="${item.product_id}">
+                        <button class="remove-item" data-id="${item.product_id}" data-variant-id="${variantId}">
                             <i class="fas fa-times"></i>
                         </button>
-                    </div>`
+                    </div>`;
+                }
             )
             .join("");
         
@@ -573,23 +602,35 @@ window.CartFunctions.openCartSidebar = function () {
 };
 
 // Add function to change quantity by delta on product cards and sidebar
-window.CartFunctions.changeQuantity = function (productId, change) {
-    // For sidebar items, we don't need to find inputs - just make the API call directly
-    const sidebarItem = document.querySelector(`.cart-item-sidebar[data-id="${productId}"]`);
+window.CartFunctions.changeQuantity = function (productId, change, variantId = null) {
+    // Convert string "null" to actual null
+    if (variantId === "null" || variantId === "") {
+        variantId = null;
+    }
+
+    // For sidebar items, we need to find the specific variant
+    let sidebarSelector = `.cart-item-sidebar[data-id="${productId}"]`;
+    if (variantId) {
+        sidebarSelector += `[data-variant-id="${variantId}"]`;
+    }
+    const sidebarItem = document.querySelector(sidebarSelector);
     
     if (sidebarItem) {
+        // Get variant ID from the sidebar item if not provided
+        const itemVariantId = variantId || sidebarItem.dataset.variantId || null;
+        
         // Get current quantity from the display span
         const quantityDisplay = sidebarItem.querySelector('.quantity-display');
         const currentQty = quantityDisplay ? parseInt(quantityDisplay.textContent) || 0 : 0;
         const newQty = currentQty + change;
         
         if (newQty <= 0) {
-            this.removeFromCart(productId);
+            this.removeFromCart(productId, itemVariantId);
             return;
         }
         
         // Make API call to update quantity
-        this.updateQuantity(productId, newQty);
+        this.updateQuantity(productId, newQty, itemVariantId);
         return;
     }
 
@@ -600,13 +641,21 @@ window.CartFunctions.changeQuantity = function (productId, change) {
 
     // If not found, try to find input in cart page (within cart item)
     if (!input) {
-        const cartItem = document.querySelector(
-            `[data-product-id="${productId}"]`
-        );
+        // For cart page, we need to find the specific variant
+        let cartItemSelector = `[data-product-id="${productId}"]`;
+        if (variantId) {
+            cartItemSelector += `[data-variant-id="${variantId}"]`;
+        }
+        
+        const cartItem = document.querySelector(cartItemSelector);
         if (cartItem) {
             input = cartItem.querySelector(
                 ".quantity-controls .quantity-input"
             );
+            // Get variant ID from cart item if not provided
+            if (!variantId) {
+                variantId = cartItem.dataset.variantId || null;
+            }
         }
     }
 
@@ -615,7 +664,7 @@ window.CartFunctions.changeQuantity = function (productId, change) {
     let current = parseInt(input.value) || 0;
     let newQty = current + change;
     if (newQty <= 0) {
-        this.removeFromCart(productId);
+        this.removeFromCart(productId, variantId);
         // Only remove quantity controls on product listing pages, not cart page
         if (input.hasAttribute("data-product-id")) {
             this.removeQuantityControls(productId);
@@ -623,7 +672,7 @@ window.CartFunctions.changeQuantity = function (productId, change) {
         return;
     }
     input.value = newQty;
-    this.updateQuantity(productId, newQty);
+    this.updateQuantity(productId, newQty, variantId);
 };
 
 // Add function to revert quantity controls back to Add to Cart button
@@ -667,6 +716,20 @@ window.CartFunctions.renderProductCartButtonsWithData = function (cartData) {
 
     // Then, replace add-to-cart buttons with quantity controls for items in cart
     cartData.items.forEach((item) => {
+        // Check if there's already a static quantity selector for this product (like on product detail pages)
+        const existingQuantitySelector = document.querySelector('.quantity-selector');
+        const existingQuantityInput = document.getElementById('quantity');
+        
+        // If we're on a product detail page with static quantity controls, don't add dynamic ones
+        if (existingQuantitySelector && existingQuantityInput) {
+            // Update the existing quantity input to match cart quantity if it's for the same product
+            const selectedVariantInput = document.getElementById('selected-variant-id');
+            if (selectedVariantInput && parseInt(selectedVariantInput.value) === item.variant_id) {
+                existingQuantityInput.value = item.quantity;
+            }
+            return; // Skip adding dynamic controls
+        }
+        
         // find add-to-cart button
         const btn = document.querySelector(
             `.btn-add-to-cart[onclick*="${item.product_id}"]`
@@ -725,23 +788,23 @@ cartNotificationStyle.textContent = `
 document.head.appendChild(cartNotificationStyle);
 
 // Global wrapper functions for backward compatibility
-window.updateQuantity = function (productId, delta) {
+window.updateQuantity = function (productId, delta, variantId = null) {
     // Check if this is a small delta value (likely relative change from cart page buttons)
     if (typeof delta === "number" && (delta === 1 || delta === -1)) {
         // This is a relative change from cart page buttons
-        CartFunctions.changeQuantity(productId, delta);
+        CartFunctions.changeQuantity(productId, delta, variantId);
     } else {
         // This is an absolute quantity setting
-        CartFunctions.updateQuantity(productId, delta);
+        CartFunctions.updateQuantity(productId, delta, variantId);
     }
 };
 
-window.setQuantity = function (productId, quantity) {
-    CartFunctions.updateQuantity(productId, parseInt(quantity));
+window.setQuantity = function (productId, quantity, variantId = null) {
+    CartFunctions.updateQuantity(productId, parseInt(quantity), variantId);
 };
 
-window.removeFromCart = function (productId) {
-    CartFunctions.removeFromCart(productId);
+window.removeFromCart = function (productId, variantId = null) {
+    CartFunctions.removeFromCart(productId, variantId);
 };
 
 window.addToCart = function (productId, quantity = 1, variantId = null) {
@@ -819,8 +882,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 e.preventDefault();
                 const btn = e.target.closest('.quantity-btn.minus');
                 const productId = btn.dataset.id;
+                const variantId = btn.dataset.variantId || null;
                 if (productId) {
-                    CartFunctions.changeQuantity(productId, -1);
+                    CartFunctions.changeQuantity(productId, -1, variantId);
                 }
             }
             
@@ -829,8 +893,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 e.preventDefault();
                 const btn = e.target.closest('.quantity-btn.plus');
                 const productId = btn.dataset.id;
+                const variantId = btn.dataset.variantId || null;
                 if (productId) {
-                    CartFunctions.changeQuantity(productId, 1);
+                    CartFunctions.changeQuantity(productId, 1, variantId);
                 }
             }
             
@@ -840,8 +905,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 e.preventDefault();
                 const btn = e.target.closest('.remove-item');
                 const productId = btn.dataset.id;
+                const variantId = btn.dataset.variantId || null;
                 if (productId) {
-                    CartFunctions.removeFromCart(productId);
+                    CartFunctions.removeFromCart(productId, variantId);
                 }
             }
         });

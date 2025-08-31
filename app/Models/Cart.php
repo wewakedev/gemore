@@ -12,6 +12,7 @@ class Cart extends Model
     protected $fillable = [
         'cart_token',
         'product_id',
+        'product_variant_id',
         'quantity',
     ];
 
@@ -21,6 +22,14 @@ class Cart extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * Get the product variant that belongs to this cart item.
+     */
+    public function productVariant()
+    {
+        return $this->belongsTo(ProductVariant::class);
     }
 
     /**
@@ -37,7 +46,7 @@ class Cart extends Model
     public static function getCartWithProducts($token)
     {
         return static::byToken($token)
-            ->with(['product', 'product.defaultVariant'])
+            ->with(['product', 'product.defaultVariant', 'productVariant'])
             ->get();
     }
 
@@ -47,10 +56,12 @@ class Cart extends Model
     public static function getCartTotal($token)
     {
         return static::byToken($token)
-            ->with(['product', 'product.defaultVariant'])
+            ->with(['product', 'product.defaultVariant', 'productVariant'])
             ->get()
             ->sum(function ($item) {
-                return $item->quantity * ($item->product->defaultVariant?->price ?? 0);
+                // Use the selected variant price if available, otherwise use default variant
+                $price = $item->productVariant?->price ?? $item->product->defaultVariant?->price ?? 0;
+                return $item->quantity * $price;
             });
     }
 }
