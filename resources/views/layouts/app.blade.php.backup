@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Essential meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <!-- SEO Meta Tags -->
+    <title>
+      Ge More Nutralife - Premium Sports Supplements | Whey Protein, Pre-Workout
+      & More
+    </title>
+    <meta
+      name="description"
+      content="Ge More Nutralife offers premium quality sports supplements including whey protein, pre-workout, creatine, and kesar supplements. GMP & FSSAI certified for your fitness journey."
+    />
+    <meta
+      name="keywords"
+      content="whey protein, sports supplements, pre-workout, creatine, kesar supplements, fitness nutrition, GMP certified, FSSAI certified, muscle building, protein powder"
+    />
+    <meta name="author" content="Ge More Nutralife" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://gemorenutrients.com/" />
+
+    <!-- Open Graph Meta Tags -->
+    <meta
+      property="og:title"
+      content="Ge More Nutralife - Premium Sports Supplements"
+    />
+    <meta
+      property="og:description"
+      content="Premium quality sports supplements including whey protein, pre-workout, and creatine. GMP & FSSAI certified for your fitness journey."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://gemorenutrients.com/" />
+    <meta
+      property="og:image"
+      content="https://gemorenutrients.com/images/aboutgemore.jpg"
+    />
+    <meta property="og:site_name" content="Ge More Nutralife" />
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Ge More Nutralife - Premium Sports Supplements"
+    />
+    <meta
+      name="twitter:description"
+      content="Premium quality sports supplements for your fitness journey. GMP & FSSAI certified."
+    />
+    <meta
+      name="twitter:image"
+      content="https://gemorenutrients.com/images/aboutgemore.jpg"
+    />
+
+    <!-- Favicon -->
+    <link rel="icon" href="images/fevicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="images/fevicon.png" />
+
+    <!-- Preload critical resources -->
+    <link rel="preload" href="css/bootstrap.min.css" as="style" />
+    <link rel="preload" href="css/style.css" as="style" />
+
+    <!-- Critical CSS -->
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/responsive.css" />
+    <link rel="stylesheet" href="css/hero-custom.css" />
+    <link rel="stylesheet" href="css/navbar-custom.css" />
+    <link rel="stylesheet" href="css/theme.css" />
+    <link rel="stylesheet" href="css/font-awesome.min.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="css/icomoon.css" />
+
+    <!-- Font Awesome - Essential Icons Only -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+
+    <!-- Structured Data for SEO -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Ge More Nutralife",
+        "description": "Premium sports supplements manufacturer specializing in whey protein, pre-workout, and creatine supplements",
+        "url": "https://gemorenutrients.com",
+        "logo": "https://gemorenutrients.com/images/aboutgemore.jpg",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "telephone": "+91-92117-98913",
+          "contactType": "customer service",
+          "areaServed": "IN"
+        },
+        "sameAs": [
+          "https://www.facebook.com/gemorenutralife",
+          "https://www.instagram.com/gemorenutralife"
+        ],
+        "hasOfferCatalog": {
+          "@type": "OfferCatalog",
+          "name": "Sports Supplements",
+          "itemListElement": [
+            {
+              "@type": "Product",
+              "name": "Nutralife Premium Whey Protein",
+              "description": "High-quality whey protein isolate for muscle building and recovery"
+            },
+            {
+              "@type": "Product", 
+              "name": "Nutralife Advanced Pre-Workout",
+              "description": "Energy-boosting pre-workout formula for enhanced performance"
+            },
+            {
+              "@type": "Product",
+              "name": "Nutralife Pure Creatine",
+              "description": "Micronized creatine monohydrate for strength and power"
+            },
+            {
+              "@type": "Product",
+              "name": "Nutralife Premium Kesar Supplement",
+              "description": "Rich and aromatic kesar-flavored supplement for enhanced wellness"
+            }
+          ]
+        }
+      }
+    </script>
+  </head>
+  <!-- body -->
+  <body class="main-layout">
+    <div id="myNav" class="menu_sid">
+      <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+      <div class="menu_sid-content">
+        <a href="#products">Our Products</a>
+        <a href="#about">About Us</a>
+        <a href="#contact">Contact Us</a>
+      </div>
+    </div>
+    <!-- Navigation -->
+    <nav class="custom-navbar">
+        <div class="navbar-container">
+            <div class="navbar-logo">Ge More Nutralife</div>
+
+            <!-- Mobile Icons (Always Visible on Mobile) -->
+            <div class="mobile-nav-icons">
+                <a href="#" class="cart-toggle">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count" id="mobile-cart-count">0</span>
+                </a>
+                <a href="#" class="wishlist-toggle">
+                    <i class="fas fa-heart"></i>
+                    <span class="wishlist-count" id="mobile-wishlist-count">0</span>
+                </a>
+            </div>
+
+            <div class="navbar-toggle" id="navbar-toggle">
+                <span></span><span></span><span></span>
+            </div>
+
+        <ul class="navbar-links" id="navbar-links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="store.html">Store</a></li>
+          <li><a href="cart.html">Cart</a></li>
+          <li><a href="#products">Products</a></li>
+          <li><a href="#about">About Us</a></li>
+          <li><a href="#contact">Contact Us</a></li>
+          <li class="cart-nav">
+            <a href="#" class="cart-toggle">
+              <i class="fas fa-shopping-cart"></i>
+              <span class="cart-count" id="cart-count">0</span>
+            </a>
+          </li>
+          <li class="wishlist-nav">
+            <a href="#" class="wishlist-toggle">
+              <i class="fas fa-heart"></i>
+              <span class="wishlist-count" id="wishlist-count">0</span>
+            </a>
+          </li>
+        </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        @yield('content')
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>Ge More Nutralife</h5>
+                    <p>Premium quality sports supplements for your fitness journey. GMP & FSSAI certified.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{{ route('home') }}">Home</a></li>
+                        <li><a href="{{ route('store') }}">Store</a></li>
+                        <li><a href="{{ route('home') }}#about">About Us</a></li>
+                        <li><a href="{{ route('home') }}#contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Contact Info</h5>
+                    <p><i class="fas fa-phone"></i> +91 92117 98913</p>
+                    <p><i class="fas fa-envelope"></i> info@gemorenutralife.com</p>
+                </div>
+            </div>
+            <hr>
+            <div class="text-center">
+                <p>&copy; {{ date('Y') }} Ge More Nutralife. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Cart Sidebar -->
+    <div class="cart-sidebar" id="cart-sidebar">
+        <div class="cart-header">
+            <h3>Shopping Cart</h3>
+            <button class="close-cart" id="close-cart">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="cart-content">
+            <div class="cart-items" id="cart-items">
+                <!-- Cart items will be dynamically loaded here -->
+            </div>
+            <div class="cart-empty" id="cart-empty" style="display: none">
+                <i class="fas fa-shopping-cart"></i>
+                <p>Your cart is empty</p>
+            </div>
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total" id="cart-total">
+                <!-- Cart total will be dynamically loaded here -->
+            </div>
+            <div class="cart-actions">
+                <button class="btn btn-outline" id="clear-cart">Clear Cart</button>
+                <button class="btn btn-primary" id="checkout-btn">Checkout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wishlist Sidebar -->
+    <div class="wishlist-sidebar" id="wishlist-sidebar">
+        <div class="wishlist-header">
+            <h3>Wishlist</h3>
+            <button class="close-wishlist" id="close-wishlist">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="wishlist-content">
+            <!-- Wishlist items will be dynamically loaded here -->
+        </div>
+    </div>
+
+    <!-- Essential JavaScript -->
+    <script src="js/jquery-3.0.0.min.js"></script>
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="js/frontend-api.js"></script>
+    <script src="js/optimized.js"></script>
+    <script src="js/cart.js"></script>
+    
+    @yield('additional_js')
+</body>
+</html> 

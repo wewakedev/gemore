@@ -97,4 +97,56 @@ class ProductController extends Controller
 
         return view('products.show', compact('product', 'relatedProducts'));
     }
+
+    public function apiShow(Product $product)
+    {
+        $product->load(['category', 'activeVariants']);
+        
+        return response()->json([
+            'success' => true,
+            'data' => $product
+        ]);
+    }
+
+    public function apiFeatured(Request $request)
+    {
+        $limit = $request->get('limit', 6);
+        
+        $products = Product::with(['category', 'activeVariants'])
+            ->active()
+            ->featured()
+            ->limit($limit)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $products
+        ]);
+    }
+
+    public function apiByCategory(Request $request, $category)
+    {
+        $categoryModel = Category::where('slug', $category)->first();
+        
+        if (!$categoryModel) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Category not found'
+            ], 404);
+        }
+
+        $limit = $request->get('limit', 12);
+        
+        $products = Product::with(['category', 'activeVariants'])
+            ->active()
+            ->where('category_id', $categoryModel->id)
+            ->limit($limit)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $products,
+            'category' => $categoryModel
+        ]);
+    }
 } 

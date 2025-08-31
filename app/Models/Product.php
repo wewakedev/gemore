@@ -172,6 +172,48 @@ class Product extends Model
     }
 
     /**
+     * Get the second image.
+     */
+    public function getSecondImageAttribute()
+    {
+        $images = $this->images ?? [];
+        return count($images) > 1 ? $images[1] : null;
+    }
+
+    /**
+     * Get the third image.
+     */
+    public function getThirdImageAttribute()
+    {
+        $images = $this->images ?? [];
+        return count($images) > 2 ? $images[2] : null;
+    }
+
+    /**
+     * Get the discount price from the default variant.
+     */
+    public function getDiscountPriceAttribute()
+    {
+        $defaultVariant = $this->activeVariants()->where('is_default', true)->first();
+        if ($defaultVariant && $defaultVariant->original_price && $defaultVariant->original_price > $defaultVariant->price) {
+            return $defaultVariant->price;
+        }
+        return null;
+    }
+
+    /**
+     * Get the discount percentage from the default variant.
+     */
+    public function getDiscountPercentageAttribute()
+    {
+        $defaultVariant = $this->activeVariants()->where('is_default', true)->first();
+        if ($defaultVariant && $defaultVariant->original_price && $defaultVariant->original_price > $defaultVariant->price) {
+            return round((($defaultVariant->original_price - $defaultVariant->price) / $defaultVariant->original_price) * 100);
+        }
+        return 0;
+    }
+
+    /**
      * Update product ratings.
      */
     public function updateRatings()
