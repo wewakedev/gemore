@@ -37,7 +37,7 @@ class Cart extends Model
     public static function getCartWithProducts($token)
     {
         return static::byToken($token)
-            ->with('product')
+            ->with(['product', 'product.defaultVariant'])
             ->get();
     }
 
@@ -47,7 +47,7 @@ class Cart extends Model
     public static function getCartTotal($token)
     {
         return static::byToken($token)
-            ->with('product')
+            ->with(['product', 'product.defaultVariant'])
             ->get()
             ->sum(function ($item) {
                 return $item->quantity * ($item->product->defaultVariant?->price ?? 0);

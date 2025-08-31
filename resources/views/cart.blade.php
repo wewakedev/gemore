@@ -513,222 +513,97 @@
 // Cart functionality
 document.addEventListener('DOMContentLoaded', function() {
     // Event listeners
-    document.getElementById('clear-cart-btn').addEventListener('click', clearCart);
     document.getElementById('checkout-btn').addEventListener('click', proceedToCheckout);
     document.getElementById('apply-coupon').addEventListener('click', applyCoupon);
+    document.getElementById('clear-cart-btn').addEventListener('click', clearCart);
 });
 
-function loadCart() {
-    // Fetch cart from backend
-    fetch('/cart/data')
-    .then(response => response.json())
-    .then(data => {
-        const cartContainer = document.getElementById('cart-items-container');
-        const emptyCart = document.getElementById('empty-cart');
-        
-        if (!data.success || data.data.items.length === 0) {
-            cartContainer.style.display = 'none';
-            emptyCart.style.display = 'block';
-            updateCartSummary([]);
-            return;
-        }
-        
-        const cart = data.data.items;
-        
-        cartContainer.style.display = 'block';
+// Note: refreshCartPage function removed - now handled by CartFunctions.refreshCartState()
+
+// Function to update cart display with new data
+function updateCartDisplay(cartData) {
+    const cartItemsContainer = document.getElementById('cart-items-container');
+    const emptyCart = document.getElementById('empty-cart');
+    
+    if (cartData.items.length === 0) {
+        cartItemsContainer.style.display = 'none';
+        emptyCart.style.display = 'block';
+    } else {
+        cartItemsContainer.style.display = 'block';
         emptyCart.style.display = 'none';
         
-        cartContainer.innerHTML = cart.map(item => `
-            <div class="cart-item" data-product-id="${item.product_id}">
-                <div class="item-image">
-                    <img src="${item.product.images && item.product.images.length > 0 ? '/images/' + item.product.images[0] : '/images/placeholder.png'}" alt="${item.product.name}" />
-                </div>
-                <div class="item-details">
-                    <div class="item-name">${item.product.name}</div>
-                    <div class="item-variant">${item.product.defaultVariant ? item.product.defaultVariant.name : 'Default'}</div>
-                    <div class="item-price">
-                        ₹${item.product.defaultVariant ? item.product.defaultVariant.price : '0.00'}
-                    </div>
-                </div>
-                <div class="quantity-controls">
-                    <button class="quantity-btn" onclick="updateQuantity(${item.product_id}, -1)">
-                        <i class="fas fa-minus"></i>
-                    </button>
-                    <input type="number" class="quantity-input" value="${item.quantity}" min="1" 
-                           onchange="setQuantity(${item.product_id}, this.value)">
-                    <button class="quantity-btn" onclick="updateQuantity(${item.product_id}, 1)">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                </div>
-                <div class="item-total">₹${(item.product.defaultVariant ? item.product.defaultVariant.price : 0) * item.quantity}</div>
-                <button class="remove-item" onclick="removeFromCart(${item.product_id})">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        `).join('');
-        
-        updateCartSummary(cart);
-    })
-    .catch(error => {
-        console.error('Error loading cart:', error);
-        const cartContainer = document.getElementById('cart-items-container');
-        const emptyCart = document.getElementById('empty-cart');
-        cartContainer.style.display = 'none';
-        emptyCart.style.display = 'block';
-        updateCartSummary([]);
-    });
-}
-
-function updateQuantity(productId, change) {
-    // Use shared cart functions
-    if (typeof CartFunctions !== 'undefined') {
-        // Get current quantity first
-        fetch('/cart/data')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const cartItem = data.data.items.find(item => item.product_id == productId);
-                if (cartItem) {
-                    const newQuantity = cartItem.quantity + change;
-                    if (newQuantity <= 0) {
-                        CartFunctions.removeFromCart(productId);
-                    } else {
-                        CartFunctions.updateQuantity(productId, newQuantity);
-                    }
+        // Update individual cart items
+        cartData.items.forEach(item => {
+            const cartItem = document.querySelector(`[data-product-id="${item.product_id}"]`);
+            if (cartItem) {
+                // Update quantity input
+                const quantityInput = cartItem.querySelector('.quantity-input');
+                if (quantityInput) {
+                    quantityInput.value = item.quantity;
                 }
-            }
-        })
-        .catch(error => {
-            console.error('Error updating quantity:', error);
-        });
-    } else {
-        // Fallback implementation
-        // Get current quantity first
-        fetch('/cart/data')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const cartItem = data.data.items.find(item => item.product_id == productId);
-                if (cartItem) {
-                    const newQuantity = cartItem.quantity + change;
-                    if (newQuantity <= 0) {
-                        removeFromCart(productId);
-                    } else {
-                        setQuantity(productId, newQuantity);
-                    }
-                }
-            }
-        })
-        .catch(error => {
-            console.error('Error updating quantity:', error);
-        });
-    }
-}
-
-function setQuantity(productId, quantity) {
-    quantity = parseInt(quantity);
-    if (quantity <= 0) return;
-    
-    // Use shared cart functions
-    if (typeof CartFunctions !== 'undefined') {
-        CartFunctions.updateQuantity(productId, quantity);
-    } else {
-        // Fallback implementation
-        fetch(`/cart/update/${productId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify({ quantity: quantity })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                loadCart();
-            } else {
-                console.error('Error updating quantity:', data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error updating quantity:', error);
-        });
-    }
-}
-
-function removeFromCart(productId) {
-    // Use shared cart functions
-    if (typeof CartFunctions !== 'undefined') {
-        CartFunctions.removeFromCart(productId);
-    } else {
-        // Fallback implementation
-        fetch(`/cart/remove/${productId}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                loadCart();
-            } else {
-                console.error('Error removing item:', data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error removing item:', error);
-        });
-    }
-}
-
-function clearCart() {
-    if (confirm('Are you sure you want to clear your cart?')) {
-        // Clear all items from cart via API
-        fetch('/cart/data')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success && data.data.items.length > 0) {
-                // Remove each item one by one
-                const removePromises = data.data.items.map(item => 
-                    fetch(`/cart/remove/${item.product_id}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                        }
-                    })
-                );
                 
-                Promise.all(removePromises)
-                .then(() => {
-                    loadCart();
-                })
-                .catch(error => {
-                    console.error('Error clearing cart:', error);
-                });
+                // Update item total
+                const itemTotal = cartItem.querySelector('.item-total');
+                if (itemTotal) {
+                    const price = item.product.default_variant?.price || item.product.defaultVariant?.price || 0;
+                    const total = price * item.quantity;
+                    itemTotal.textContent = `₹${total.toFixed(2)}`;
+                }
             }
-        })
-        .catch(error => {
-            console.error('Error clearing cart:', error);
+        });
+        
+        // Remove items that are no longer in cart
+        const currentItems = document.querySelectorAll('.cart-item[data-product-id]');
+        currentItems.forEach(item => {
+            const productId = item.getAttribute('data-product-id');
+            const exists = cartData.items.some(cartItem => cartItem.product_id == productId);
+            if (!exists) {
+                item.remove();
+            }
         });
     }
+    
+    // Update totals
+    updateCartTotals(cartData);
 }
 
-function updateCartSummary(cart) {
-    const subtotal = cart.reduce((sum, item) => {
-        const price = item.product.defaultVariant ? parseFloat(item.product.defaultVariant.price) : 0;
-        return sum + (price * item.quantity);
-    }, 0);
-    const shipping = subtotal > 1000 ? 0 : 100; // Free shipping over ₹1000
-    const tax = subtotal * 0.18; // 18% GST
+// Function to update cart totals
+function updateCartTotals(cartData) {
+    const subtotal = cartData.total || 0;
+    const shipping = subtotal > 1000 ? 0 : 100;
+    const tax = subtotal * 0.18;
     const total = subtotal + shipping + tax;
     
     document.getElementById('cart-subtotal').textContent = `₹${subtotal.toFixed(2)}`;
     document.getElementById('cart-shipping').textContent = shipping === 0 ? 'Free' : `₹${shipping.toFixed(2)}`;
     document.getElementById('cart-tax').textContent = `₹${tax.toFixed(2)}`;
     document.getElementById('cart-total').textContent = `₹${total.toFixed(2)}`;
+}
+
+// Function to clear entire cart
+function clearCart() {
+    if (confirm('Are you sure you want to clear your entire cart?')) {
+        fetch('/cart/clear', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                CartFunctions.showNotification(data.message, 'success');
+                CartFunctions.refreshCartState();
+            } else {
+                CartFunctions.showNotification(data.message || 'Error clearing cart', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error clearing cart:', error);
+            CartFunctions.showNotification('Error clearing cart', 'error');
+        });
+    }
 }
 
 function applyCoupon() {
