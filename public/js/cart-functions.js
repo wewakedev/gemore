@@ -307,52 +307,150 @@ window.CartFunctions = {
      * Update checkout form with current cart data
      */
     updateCheckoutForm: function() {
-        // This will be called to populate the checkout form with cart items
-        // The actual implementation depends on your checkout form structure
-        this.getCartData().then(data => {
-            if (data.success && data.data.items) {
-                // Update order summary in checkout modal
-                this.updateOrderSummary(data.data);
-            }
-        });
+        // Clear cache to get fresh data
+        this.cartDataPromise = null;
+        
+        // Fetch fresh cart data with totals
+        fetch('/cart/data')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.data) {
+                    // Update order summary in checkout modal
+                    this.updateOrderSummary(data.data);
+                } else {
+                    console.error('Failed to load cart data for checkout:', data);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching cart data for checkout:', error);
+            });
     },
 
     /**
      * Update order summary in checkout modal
      */
     updateOrderSummary: function(cartData) {
-        const orderSummary = document.getElementById('order-summary');
-        if (orderSummary && cartData.items) {
-            let summaryHTML = '<h4>Order Summary</h4>';
-            let subtotal = 0;
+        this.updateCheckoutItems(cartData);
+        this.updateCheckoutTotals(cartData.totals || {});
+    },
+
+    /**
+     * Update checkout items list
+     */
+    updateCheckoutItems: function(cartData) {
+        const orderItemsContainer = document.getElementById('checkout-order-items');
+        if (!orderItemsContainer || !cartData.items) return;
+
+        if (cartData.items.length === 0) {
+            orderItemsContainer.innerHTML = '<p class="text-muted">No items in cart</p>';
+            return;
+        }
+
+        let itemsHTML = '';
+        cartData.items.forEach(item => {
+            const itemPrice = item.product?.default_variant?.price || item.product?.price || 0;
+            const itemTotal = itemPrice * item.quantity;
             
-            cartData.items.forEach(item => {
-                const itemTotal = item.price * item.quantity;
-                subtotal += itemTotal;
-                summaryHTML += `
-                    <div class="order-item">
-                        <span class="item-name">${item.product_name}</span>
-                        <span class="item-quantity">x${item.quantity}</span>
-                        <span class="item-price">₹${itemTotal}</span>
+            itemsHTML += `
+                <div class="checkout-item">
+                    <div class="item-info">
+                        <span class="item-name">${item.product?.name || 'Product'}</span>
+                        <span class="item-quantity">Qty: ${item.quantity}</span>
                     </div>
-                `;
-            });
-            
-            summaryHTML += `
-                <div class="order-total">
-                    <div class="subtotal">
-                        <span>Subtotal:</span>
-                        <span>₹${subtotal}</span>
-                    </div>
-                    <div class="total">
-                        <span>Total:</span>
-                        <span>₹${subtotal}</span>
-                    </div>
+                    <span class="item-total">₹${itemTotal.toFixed(2)}</span>
                 </div>
             `;
-            
-            orderSummary.innerHTML = summaryHTML;
+        });
+        
+        orderItemsContainer.innerHTML = itemsHTML;
+    },
+
+    /**
+     * Update checkout totals with coupon information
+     */
+    updateCheckoutTotals: function(totals) {
+        // Update individual total elements
+        const subtotalEl = document.getElementById('checkout-subtotal');
+        const shippingEl = document.getElementById('checkout-shipping');
+        const taxEl = document.getElementById('checkout-tax');
+        const totalEl = document.getElementById('checkout-total');
+        const couponRow = document.getElementById('checkout-coupon-row');
+        const couponNameEl = document.getElementById('checkout-coupon-name');
+        const couponCodeEl = document.getElementById('checkout-coupon-code');
+        const couponDiscountEl = document.getElementById('checkout-coupon-discount');
+        const freeDeliveryInfo = document.getElementById('checkout-free-delivery-info');
+
+        if (subtotalEl) subtotalEl.textContent = `₹${(totals.subtotal || 0).toFixed(2)}`;
+        if (shippingEl) shippingEl.textContent = totals.shipping === 0 ? 'Free' : `₹${(totals.shipping || 0).toFixed(2)}`;
+        if (taxEl) taxEl.textContent = `₹${(totals.tax || 0).toFixed(2)}`;
+        if (totalEl) totalEl.textContent = `₹${(totals.total || 0).toFixed(2)}`;
+
+        // Update coupon information
+        if (couponRow) {
+            if (totals.discount && totals.discount > 0) {
+                // Show applied coupon information
+                const appliedCoupon = this.getAppliedCouponInfo();
+                
+                if (couponNameEl && appliedCoupon) {
+                    couponNameEl.textContent = appliedCoupon.name || 'Coupon';
+                }
+                if (couponCodeEl && appliedCoupon) {
+                    couponCodeEl.textContent = `(${appliedCoupon.code})`;
+                }
+                if (couponDiscountEl) {
+                    couponDiscountEl.textContent = `-₹${totals.discount.toFixed(2)}`;
+                }
+                couponRow.style.display = 'flex';
+            } else {
+                couponRow.style.display = 'none';
+            }
         }
+
+        // Update free delivery info
+        if (freeDeliveryInfo) {
+            const freeDeliveryAmount = totals.free_delivery_amount || 5000;
+            const currentSubtotal = totals.discounted_subtotal || totals.subtotal || 0;
+            
+            if (currentSubtotal >= freeDeliveryAmount) {
+                freeDeliveryInfo.innerHTML = '<small class="text-muted"><i class="fa fa-truck"></i> You qualify for free delivery!</small>';
+            } else {
+                const remaining = freeDeliveryAmount - currentSubtotal;
+                freeDeliveryInfo.innerHTML = `<small class="text-muted"><i class="fa fa-truck"></i> Add ₹${remaining.toFixed(2)} more for free delivery</small>`;
+            }
+        }
+    },
+
+    /**
+     * Get applied coupon information from cart page or sidebar
+     */
+    getAppliedCouponInfo: function() {
+        // Try to get from global storage first
+        if (this.globalAppliedCoupon) {
+            return this.globalAppliedCoupon;
+        }
+        
+        // Try to get from cart page
+        if (typeof appliedCoupon !== 'undefined' && appliedCoupon) {
+            return appliedCoupon;
+        }
+        
+        // Try to get from sidebar
+        if (this.sidebarAppliedCoupon) {
+            return this.sidebarAppliedCoupon;
+        }
+        
+        // Fallback: try to extract from DOM
+        const couponNameEl = document.getElementById('applied-coupon-name') || document.getElementById('sidebar-applied-coupon-name');
+        const couponCodeEl = document.getElementById('applied-coupon-code') || document.getElementById('sidebar-applied-coupon-code');
+        
+        if (couponNameEl && couponNameEl.textContent && couponNameEl.textContent.trim() !== '') {
+            return {
+                name: couponNameEl.textContent,
+                code: couponCodeEl ? couponCodeEl.textContent.replace(/[()]/g, '') : 'COUPON'
+            };
+        }
+        
+        return null;
     },
     // Add cached fetch for cart data
     cartDataPromise: null,
@@ -377,6 +475,9 @@ window.CartFunctions = {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    // Restore coupon state first
+                    this.restoreCouponState(data.data);
+                    
                     // Update all cart-related UI components with the fetched data
                     this.updateCartCountWithData(data.data);
                     this.updateCartSidebarWithData(data.data);
@@ -446,66 +547,22 @@ window.CartFunctions.updateCartSidebarWithData = function (cartData) {
             )
             .join("");
         
-        // Update cart total with detailed breakdown
-        const subtotal = cartData.subtotal || cartData.total;
-        const shipping = cartData.shipping || 0;
-        const tax = cartData.tax || Math.round(subtotal * 0.18);
-        const discount = cartData.discount || 0;
-        const total = cartData.total;
+        // Update cart totals using API response
+        this.updateSidebarTotals(cartData.totals || {});
         
-        totalEl.innerHTML = `
-            <div class="summary-row">
-                <span>Subtotal:</span>
-                <span>₹${subtotal}</span>
-            </div>
-            <div class="summary-row">
-                <span>Shipping:</span>
-                <span>₹${shipping}</span>
-            </div>
-            <div class="summary-row">
-                <span>Tax:</span>
-                <span>₹${tax}</span>
-            </div>
-            
-            <div class="coupon-section-sidebar">
-                <div class="coupon-input">
-                    <input type="text" id="sidebar-coupon-code" placeholder="Coupon code">
-                    <button class="btn btn-secondary btn-sm" id="sidebar-apply-coupon">Apply</button>
-                </div>
-            </div>
-            <div class="summary-row total-row">
-                <span><strong>Total:</strong></span>
-                <span><strong>₹${total}</strong></span>
-            </div>
-        `;
+        // Restore coupon state in sidebar
+        this.restoreCouponState(cartData);
     } else {
         itemsContainer.innerHTML = "";
         emptyContainer.style.display = "block";
-        totalEl.innerHTML = `
-            <div class="summary-row">
-                <span>Subtotal:</span>
-                <span>₹0</span>
-            </div>
-            <div class="summary-row">
-                <span>Shipping:</span>
-                <span>₹0</span>
-            </div>
-            <div class="summary-row">
-                <span>Tax:</span>
-                <span>₹0</span>
-            </div>
-            
-            <div class="coupon-section-sidebar">
-                <div class="coupon-input">
-                    <input type="text" id="sidebar-coupon-code" placeholder="Coupon code">
-                    <button class="btn btn-secondary btn-sm" id="sidebar-apply-coupon">Apply</button>
-                </div>
-            </div>
-            <div class="summary-row total-row">
-                <span><strong>Total:</strong></span>
-                <span><strong>₹0</strong></span>
-            </div>
-        `;
+        this.updateSidebarTotals({
+            subtotal: 0,
+            shipping: 0,
+            tax: 0,
+            discount: 0,
+            total: 0,
+            free_delivery_amount: 5000
+        });
     }
 };
 
@@ -779,5 +836,374 @@ document.addEventListener("DOMContentLoaded", function () {
                 CartFunctions.openCartSidebar();
             });
         });
+        
+        // Sidebar coupon event listeners
+        const sidebarApplyBtn = document.getElementById('sidebar-apply-coupon-btn');
+        const sidebarRemoveBtn = document.getElementById('sidebar-remove-coupon-btn');
+        const sidebarCouponInput = document.getElementById('sidebar-coupon-code');
+        
+        if (sidebarApplyBtn) {
+            sidebarApplyBtn.addEventListener('click', function() {
+                CartFunctions.applySidebarCoupon();
+            });
+        }
+        
+        if (sidebarRemoveBtn) {
+            sidebarRemoveBtn.addEventListener('click', function() {
+                CartFunctions.removeSidebarCoupon();
+            });
+        }
+        
+        if (sidebarCouponInput) {
+            sidebarCouponInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    CartFunctions.applySidebarCoupon();
+                }
+            });
+        }
     }
 });
+
+// Add function to update sidebar totals
+window.CartFunctions.updateSidebarTotals = function(totals) {
+    // Update individual total elements
+    const subtotalEl = document.getElementById('sidebar-subtotal');
+    const shippingEl = document.getElementById('sidebar-shipping');
+    const taxEl = document.getElementById('sidebar-tax');
+    const discountEl = document.getElementById('sidebar-discount');
+    const totalEl = document.getElementById('sidebar-total');
+    const discountRow = document.getElementById('sidebar-discount-row');
+    const freeDeliveryInfo = document.getElementById('sidebar-free-delivery-info');
+
+    if (subtotalEl) subtotalEl.textContent = `₹${(totals.subtotal || 0).toFixed(2)}`;
+    if (shippingEl) shippingEl.textContent = totals.shipping === 0 ? 'Free' : `₹${(totals.shipping || 0).toFixed(2)}`;
+    if (taxEl) taxEl.textContent = `₹${(totals.tax || 0).toFixed(2)}`;
+    if (totalEl) totalEl.textContent = `₹${(totals.total || 0).toFixed(2)}`;
+
+    // Update discount row
+    if (discountRow && discountEl) {
+        if (totals.discount && totals.discount > 0) {
+            discountEl.textContent = `-₹${totals.discount.toFixed(2)}`;
+            discountRow.style.display = 'flex';
+        } else {
+            discountRow.style.display = 'none';
+        }
+    }
+
+    // Update free delivery info
+    if (freeDeliveryInfo) {
+        const freeDeliveryAmount = totals.free_delivery_amount || 1000;
+        const currentSubtotal = totals.discounted_subtotal || totals.subtotal || 0;
+        
+        if (currentSubtotal >= freeDeliveryAmount) {
+            freeDeliveryInfo.innerHTML = '<small class="text-muted"><i class="fa fa-truck"></i> You qualify for free delivery!</small>';
+        } else {
+            const remaining = freeDeliveryAmount - currentSubtotal;
+            freeDeliveryInfo.innerHTML = `<small class="text-muted"><i class="fa fa-truck"></i> Add ₹${remaining.toFixed(2)} more for free delivery</small>`;
+        }
+    }
+};
+
+// Sidebar coupon functionality
+window.CartFunctions.sidebarAppliedCoupon = null;
+
+// Global applied coupon storage for checkout modal
+window.CartFunctions.globalAppliedCoupon = null;
+
+// Coupon persistence functions
+window.CartFunctions.saveCouponToStorage = function(coupon) {
+    try {
+        if (coupon) {
+            localStorage.setItem('applied_coupon', JSON.stringify(coupon));
+        } else {
+            localStorage.removeItem('applied_coupon');
+        }
+    } catch (error) {
+        console.warn('Failed to save coupon to localStorage:', error);
+    }
+};
+
+window.CartFunctions.loadCouponFromStorage = function() {
+    try {
+        const stored = localStorage.getItem('applied_coupon');
+        return stored ? JSON.parse(stored) : null;
+    } catch (error) {
+        console.warn('Failed to load coupon from localStorage:', error);
+        return null;
+    }
+};
+
+window.CartFunctions.restoreCouponState = function(cartData) {
+    if (cartData && cartData.applied_coupon) {
+        // Server has coupon data, use that and sync to localStorage
+        this.globalAppliedCoupon = cartData.applied_coupon;
+        this.sidebarAppliedCoupon = cartData.applied_coupon;
+        this.saveCouponToStorage(cartData.applied_coupon);
+        
+        // Update UI to show applied coupon
+        this.showAppliedCouponInUI(cartData.applied_coupon);
+        
+        return cartData.applied_coupon;
+    } else {
+        // No server coupon, check localStorage
+        const storedCoupon = this.loadCouponFromStorage();
+        if (storedCoupon) {
+            // Validate stored coupon is still applicable
+            this.validateStoredCoupon(storedCoupon);
+        }
+        return null;
+    }
+};
+
+window.CartFunctions.validateStoredCoupon = function(storedCoupon) {
+    // Check if stored coupon is still valid by attempting to apply it
+    fetch('/coupon/validate', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            coupon_code: storedCoupon.code
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Coupon is still valid, apply it
+            this.applyCouponSilently(storedCoupon.code);
+        } else {
+            // Coupon is no longer valid, remove from storage
+            this.saveCouponToStorage(null);
+        }
+    })
+    .catch(error => {
+        console.warn('Failed to validate stored coupon:', error);
+        this.saveCouponToStorage(null);
+    });
+};
+
+window.CartFunctions.applyCouponSilently = function(couponCode) {
+    // Apply coupon without showing loading states
+    fetch('/coupon/apply', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            coupon_code: couponCode
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            this.globalAppliedCoupon = data.data.coupon;
+            this.sidebarAppliedCoupon = data.data.coupon;
+            this.saveCouponToStorage(data.data.coupon);
+            this.showAppliedCouponInUI(data.data.coupon);
+            
+            // Update all UI components
+            this.updateSidebarTotals(data.data.totals);
+            this.updateCheckoutTotals(data.data.totals);
+            
+            // Update main cart page if it's open
+            if (typeof updateCartTotals === 'function') {
+                updateCartTotals({ totals: data.data.totals });
+            }
+        }
+    })
+    .catch(error => {
+        console.warn('Failed to silently apply coupon:', error);
+    });
+};
+
+window.CartFunctions.showAppliedCouponInUI = function(coupon) {
+    // Show in sidebar with detailed information
+    this.showSidebarAppliedCoupon(coupon);
+    
+    // Show in main cart page if elements exist
+    const mainCouponName = document.getElementById('applied-coupon-name');
+    const mainCouponCode = document.getElementById('applied-coupon-code');
+    const mainInputSection = document.getElementById('coupon-input-section');
+    const mainAppliedSection = document.getElementById('applied-coupon-section');
+    
+    if (mainCouponName && mainCouponCode && mainInputSection && mainAppliedSection) {
+        mainCouponName.textContent = coupon.name || 'Coupon';
+        mainCouponCode.textContent = `(${coupon.code})`;
+        mainInputSection.style.display = 'none';
+        mainAppliedSection.style.display = 'flex';
+        
+        // Clear coupon input
+        const couponInput = document.getElementById('coupon-code');
+        if (couponInput) couponInput.value = '';
+    }
+};
+
+window.CartFunctions.applySidebarCoupon = function() {
+    const couponCode = document.getElementById('sidebar-coupon-code').value.trim();
+    const applyBtn = document.getElementById('sidebar-apply-coupon-btn');
+
+    if (!couponCode) {
+        this.showSidebarCouponMessage('Please enter a coupon code', 'error');
+        return;
+    }
+
+    // Disable button and show loading
+    applyBtn.disabled = true;
+    applyBtn.textContent = 'Applying...';
+    this.clearSidebarCouponMessage();
+
+    fetch('/coupon/apply', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            coupon_code: couponCode
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            this.sidebarAppliedCoupon = data.data.coupon;
+            this.globalAppliedCoupon = data.data.coupon; // Store globally for checkout
+            this.saveCouponToStorage(data.data.coupon); // Save to localStorage
+            this.updateSidebarTotals(data.data.totals);
+            this.showSidebarAppliedCoupon(this.sidebarAppliedCoupon);
+            this.showSidebarCouponMessage(`Coupon applied! You saved ₹${this.sidebarAppliedCoupon.discount_amount.toFixed(2)}`, 'success');
+            
+            // Update main cart page if it's open
+            if (typeof updateCartTotals === 'function') {
+                updateCartTotals({ totals: data.data.totals });
+            }
+            
+            // Update checkout modal if it exists
+            this.updateCheckoutTotals(data.data.totals);
+        } else {
+            this.showSidebarCouponMessage(data.message || 'Invalid coupon code', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error applying coupon:', error);
+        this.showSidebarCouponMessage('An error occurred while applying the coupon', 'error');
+    })
+    .finally(() => {
+        applyBtn.disabled = false;
+        applyBtn.textContent = 'Apply';
+    });
+};
+
+window.CartFunctions.removeSidebarCoupon = function() {
+    const removeBtn = document.getElementById('sidebar-remove-coupon-btn');
+    
+    // Show confirmation for better UX
+    if (!confirm('Remove applied coupon?')) {
+        return;
+    }
+    
+    // Disable button and show loading
+    removeBtn.disabled = true;
+    removeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    this.clearSidebarCouponMessage();
+
+    fetch('/coupon/remove', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            this.sidebarAppliedCoupon = null;
+            this.globalAppliedCoupon = null; // Clear globally for checkout
+            this.saveCouponToStorage(null); // Remove from localStorage
+            this.updateSidebarTotals(data.data.totals);
+            this.hideSidebarAppliedCoupon();
+            this.showSidebarCouponMessage('Coupon removed successfully', 'success');
+            
+            // Update main cart page if it's open
+            if (typeof updateCartTotals === 'function') {
+                updateCartTotals({ totals: data.data.totals });
+            }
+            
+            // Update checkout modal if it exists
+            this.updateCheckoutTotals(data.data.totals);
+        } else {
+            this.showSidebarCouponMessage(data.message || 'Error removing coupon', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error removing coupon:', error);
+        this.showSidebarCouponMessage('An error occurred while removing the coupon', 'error');
+    })
+    .finally(() => {
+        removeBtn.disabled = false;
+        removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+    });
+};
+
+window.CartFunctions.showSidebarAppliedCoupon = function(coupon) {
+    const nameEl = document.getElementById('sidebar-applied-coupon-name');
+    const codeEl = document.getElementById('sidebar-applied-coupon-code');
+    const savingsEl = document.getElementById('sidebar-applied-coupon-savings');
+    const inputSection = document.getElementById('sidebar-coupon-input-section');
+    const appliedSection = document.getElementById('sidebar-applied-coupon-section');
+    
+    if (nameEl) {
+        nameEl.textContent = coupon.name || 'Coupon Applied';
+    }
+    
+    if (codeEl) {
+        codeEl.textContent = `Code: ${coupon.code}`;
+    }
+    
+    if (savingsEl && coupon.discount_amount) {
+        savingsEl.textContent = `Saved ₹${parseFloat(coupon.discount_amount).toFixed(2)}`;
+    }
+    
+    if (inputSection) inputSection.style.display = 'none';
+    if (appliedSection) appliedSection.style.display = 'block';
+    
+    // Clear coupon input
+    const codeInput = document.getElementById('sidebar-coupon-code');
+    if (codeInput) codeInput.value = '';
+};
+
+window.CartFunctions.hideSidebarAppliedCoupon = function() {
+    const inputSection = document.getElementById('sidebar-coupon-input-section');
+    const appliedSection = document.getElementById('sidebar-applied-coupon-section');
+    
+    // Clear coupon details
+    const nameEl = document.getElementById('sidebar-applied-coupon-name');
+    const codeEl = document.getElementById('sidebar-applied-coupon-code');
+    const savingsEl = document.getElementById('sidebar-applied-coupon-savings');
+    
+    if (nameEl) nameEl.textContent = '';
+    if (codeEl) codeEl.textContent = '';
+    if (savingsEl) savingsEl.textContent = '';
+    
+    if (inputSection) inputSection.style.display = 'flex';
+    if (appliedSection) appliedSection.style.display = 'none';
+};
+
+window.CartFunctions.showSidebarCouponMessage = function(message, type) {
+    const messageDiv = document.getElementById('sidebar-coupon-message');
+    if (messageDiv) {
+        messageDiv.textContent = message;
+        messageDiv.className = `coupon-message-sidebar ${type}`;
+        messageDiv.style.display = 'block';
+    }
+};
+
+window.CartFunctions.clearSidebarCouponMessage = function() {
+    const messageDiv = document.getElementById('sidebar-coupon-message');
+    if (messageDiv) {
+        messageDiv.textContent = '';
+        messageDiv.className = 'coupon-message-sidebar';
+        messageDiv.style.display = 'none';
+    }
+};

@@ -233,6 +233,11 @@
             color: #343a40;
         }
 
+        .text-success {
+            color: #28a745 !important;
+            font-weight: 600;
+        }
+
         .support-info {
             background: #e3f2fd;
             border-radius: 15px;
@@ -363,6 +368,12 @@
                             <span>Tax:</span>
                             <span>₹{{ number_format($order->tax, 2) }}</span>
                         </div>
+                        @if($order->coupon_discount > 0)
+                            <div class="summary-row">
+                                <span>Discount ({{ $order->coupon_code }}):</span>
+                                <span class="text-success">-₹{{ number_format($order->coupon_discount, 2) }}</span>
+                            </div>
+                        @endif
                         <div class="summary-row total">
                             <span>Total:</span>
                             <span>₹{{ number_format($order->total, 2) }}</span>

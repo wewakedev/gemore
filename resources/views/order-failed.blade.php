@@ -299,6 +299,12 @@
                                 <span class="info-label">Order Status:</span>
                                 <span class="info-value" style="color: #dc3545; font-weight: 600;">{{ $order->status_display }}</span>
                             </div>
+                            @if($order->coupon_discount > 0)
+                                <div class="info-row">
+                                    <span class="info-label">Coupon Applied:</span>
+                                    <span class="info-value">{{ $order->coupon_code }} (-₹{{ number_format($order->coupon_discount, 2) }})</span>
+                                </div>
+                            @endif
                             <div class="info-row">
                                 <span class="info-label">Order Total:</span>
                                 <span class="info-value" style="font-weight: 600;">₹{{ number_format($order->total, 2) }}</span>

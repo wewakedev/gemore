@@ -172,26 +172,58 @@
             <div class="cart-total" id="cart-total">
                 <div class="summary-row">
                     <span>Subtotal:</span>
-                    <span>₹0</span>
+                    <span id="sidebar-subtotal">₹0</span>
                 </div>
                 <div class="summary-row">
                     <span>Shipping:</span>
-                    <span>₹0</span>
+                    <span id="sidebar-shipping">₹0</span>
                 </div>
                 <div class="summary-row">
                     <span>Tax:</span>
-                    <span>₹0</span>
+                    <span id="sidebar-tax">₹0</span>
                 </div>
 
-                <div class="coupon-section-sidebar">
-                    <div class="coupon-input">
-                        <input type="text" id="sidebar-coupon-code" placeholder="Coupon code">
-                        <button class="btn btn-secondary btn-sm" id="sidebar-apply-coupon">Apply</button>
+                <!-- Coupon Section -->
+                <div class="coupon-section-sidebar" id="sidebar-coupon-section">
+                    <div class="coupon-input" id="sidebar-coupon-input-section">
+                        <input type="text" id="sidebar-coupon-code" placeholder="Coupon code" maxlength="50">
+                        <button class="btn btn-secondary btn-sm" id="sidebar-apply-coupon-btn">Apply</button>
                     </div>
+                    <div class="applied-coupon-sidebar" id="sidebar-applied-coupon-section" style="display: none;">
+                        <div class="coupon-info-sidebar">
+                            <div class="coupon-details">
+                                <div class="coupon-name-line">
+                                    <i class="fas fa-tag"></i>
+                                    <span class="coupon-name" id="sidebar-applied-coupon-name"></span>
+                                </div>
+                                <div class="coupon-code-line">
+                                    <small class="coupon-code" id="sidebar-applied-coupon-code"></small>
+                                    <small class="coupon-savings" id="sidebar-applied-coupon-savings"></small>
+                                </div>
+                            </div>
+                            <button class="btn btn-sm btn-outline" id="sidebar-remove-coupon-btn" title="Remove coupon">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="coupon-message-sidebar" id="sidebar-coupon-message"></div>
                 </div>
+                
+                <div class="summary-row discount-row" id="sidebar-discount-row" style="display: none;">
+                    <span>Discount:</span>
+                    <span id="sidebar-discount" class="text-success">-₹0.00</span>
+                </div>
+                
                 <div class="summary-row total-row">
                     <span><strong>Total:</strong></span>
-                    <span><strong>₹0</strong></span>
+                    <span><strong id="sidebar-total">₹0</strong></span>
+                </div>
+                
+                <div class="free-delivery-info-sidebar" id="sidebar-free-delivery-info">
+                    <small class="text-muted">
+                        <i class="fa fa-truck"></i>
+                        Add items for free delivery
+                    </small>
                 </div>
             </div>
             <div class="cart-actions">
@@ -270,23 +302,46 @@
 
                             <h4>Order Summary</h4>
                             <div class="checkout-summary" id="checkout-summary">
-                                <div class="summary-row">
-                                    <span>Items (1):</span>
-                                    <span>₹2,499</span>
+                                <div class="order-items" id="checkout-order-items">
+                                    <!-- Order items will be populated here -->
                                 </div>
-                                <div class="summary-row">
-                                    <span>Shipping:</span>
-                                    <span>₹0</span>
-                                </div>
-                                <div class="summary-row">
-                                    <span>Tax (GST):</span>
-                                    <span>₹450</span>
-                                </div>
+                                
+                                <div class="order-totals">
+                                    <div class="summary-row">
+                                        <span>Subtotal:</span>
+                                        <span id="checkout-subtotal">₹0.00</span>
+                                    </div>
+                                    <div class="summary-row">
+                                        <span>Shipping:</span>
+                                        <span id="checkout-shipping">₹0.00</span>
+                                    </div>
+                                    <div class="summary-row">
+                                        <span>Tax (18% GST):</span>
+                                        <span id="checkout-tax">₹0.00</span>
+                                    </div>
+                                    
+                                    <!-- Applied Coupon Section -->
+                                    <div class="summary-row coupon-applied" id="checkout-coupon-row" style="display: none;">
+                                        <span>
+                                            <i class="fas fa-tag"></i>
+                                            <span id="checkout-coupon-name">Coupon</span>
+                                            <small id="checkout-coupon-code">(CODE)</small>
+                                        </span>
+                                        <span id="checkout-coupon-discount" class="text-success">-₹0.00</span>
+                                    </div>
+                                    
+                                    <div class="free-delivery-checkout" id="checkout-free-delivery-info">
+                                        <small class="text-muted">
+                                            <i class="fa fa-truck"></i>
+                                            Add items for free delivery
+                                        </small>
+                                    </div>
 
-                                <hr>
-                                <div class="summary-row" style="font-weight: 600; font-size: 16px;">
-                                    <span>Total:</span>
-                                    <span>₹2,949</span>
+                                    <hr>
+                                    <div class="summary-row total-row" style="font-weight: 600; font-size: 16px;">
+                                        <span>Total:</span>
+                                        <span id="checkout-total">₹0.00</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -69,14 +69,15 @@ class CartController extends Controller
 
         // Get updated cart data
         $cartItems = Cart::getCartWithProducts($cartToken);
-        $total = Cart::getCartTotal($cartToken);
+        $subtotal = Cart::getCartTotal($cartToken);
+        $totals = $this->calculateCartTotals($subtotal, 0);
 
         return response()->json([
             'success' => true,
             'message' => $message,
             'data' => [
                 'items' => $cartItems,
-                'total' => $total,
+                'totals' => $totals,
                 'item_count' => $cartItems->count()
             ]
         ]);
@@ -109,14 +110,15 @@ class CartController extends Controller
 
         // Get updated cart data
         $cartItems = Cart::getCartWithProducts($cartToken);
-        $total = Cart::getCartTotal($cartToken);
+        $subtotal = Cart::getCartTotal($cartToken);
+        $totals = $this->calculateCartTotals($subtotal, 0);
 
         return response()->json([
             'success' => true,
             'message' => 'Cart updated successfully',
             'data' => [
                 'items' => $cartItems,
-                'total' => $total,
+                'totals' => $totals,
                 'item_count' => $cartItems->count()
             ]
         ]);
@@ -142,14 +144,15 @@ class CartController extends Controller
 
         // Get updated cart data
         $cartItems = Cart::getCartWithProducts($cartToken);
-        $total = Cart::getCartTotal($cartToken);
+        $subtotal = Cart::getCartTotal($cartToken);
+        $totals = $this->calculateCartTotals($subtotal, 0);
 
         return response()->json([
             'success' => true,
             'message' => 'Product removed from cart successfully',
             'data' => [
                 'items' => $cartItems,
-                'total' => $total,
+                'totals' => $totals,
                 'item_count' => $cartItems->count()
             ]
         ]);
@@ -171,14 +174,37 @@ class CartController extends Controller
         }
 
         $cartItems = Cart::getCartWithProducts($cartToken);
-        $total = Cart::getCartTotal($cartToken);
+        $subtotal = Cart::getCartTotal($cartToken);
+        
+        // Check for applied coupon in session
+        $appliedCoupon = session('applied_coupon');
+        $discountAmount = 0;
+        
+        if ($appliedCoupon) {
+            // Validate that the coupon is still valid
+            $coupon = \App\Models\Coupon::find($appliedCoupon['id']);
+            if ($coupon && $coupon->isValid(null, $subtotal)['valid']) {
+                $discountAmount = $coupon->calculateDiscount($subtotal);
+                // Update discount amount in session if it changed
+                $appliedCoupon['discount_amount'] = $discountAmount;
+                session(['applied_coupon' => $appliedCoupon]);
+            } else {
+                // Coupon is no longer valid, remove from session
+                session()->forget('applied_coupon');
+                $appliedCoupon = null;
+            }
+        }
+        
+        // Calculate totals with or without coupon
+        $totals = $this->calculateCartTotals($subtotal, $discountAmount);
 
         return response()->json([
             'success' => true,
             'message' => 'Cart retrieved successfully',
             'data' => [
                 'items' => $cartItems,
-                'total' => $total,
+                'totals' => $totals,
+                'applied_coupon' => $appliedCoupon,
                 'item_count' => $cartItems->count()
             ]
         ]);
@@ -206,11 +232,39 @@ class CartController extends Controller
             'message' => 'Cart cleared successfully',
             'data' => [
                 'items' => collect(),
-                'total' => 0,
+                'totals' => $this->calculateCartTotals(0, 0),
                 'item_count' => 0
             ]
         ]);
     }
 
+    /**
+     * Calculate cart totals with shipping, tax, and discount
+     */
+    private function calculateCartTotals(float $subtotal, float $discountAmount = 0): array
+    {
+        $freeDeliveryAmount = config('app.free_delivery_order_amount', 5000);
+        
+        // Apply discount to subtotal
+        $discountedSubtotal = max(0, $subtotal - $discountAmount);
+        
+        // Calculate shipping based on discounted subtotal
+        $shipping = $discountedSubtotal >= $freeDeliveryAmount ? 0 : 100;
+        
+        // Calculate tax on discounted subtotal (18% GST)
+        $tax = $discountedSubtotal * 0.18;
+        
+        // Calculate final total
+        $total = $discountedSubtotal + $shipping + $tax;
 
+        return [
+            'subtotal' => $subtotal,
+            'discount' => $discountAmount,
+            'discounted_subtotal' => $discountedSubtotal,
+            'shipping' => $shipping,
+            'tax' => $tax,
+            'total' => $total,
+            'free_delivery_amount' => $freeDeliveryAmount
+        ];
+    }
 } 

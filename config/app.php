@@ -17,6 +17,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Free Delivery Order Amount
+    |--------------------------------------------------------------------------
+    |
+    | This value determines the minimum order amount for free delivery.
+    | Orders equal to or above this amount will have free shipping.
+    |
+    */
+
+    'free_delivery_order_amount' => env('FREE_DELIVERY_ORDER_AMOUNT', 5000),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |

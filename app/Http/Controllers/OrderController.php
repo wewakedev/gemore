@@ -59,11 +59,25 @@ class OrderController extends Controller
                 ], 400);
             }
 
+            // Get applied coupon from session
+            $appliedCoupon = session('applied_coupon');
+            $couponDiscount = 0;
+            $couponCode = null;
+            $couponId = null;
+
+            if ($appliedCoupon) {
+                $couponDiscount = $appliedCoupon['discount_amount'] ?? 0;
+                $couponCode = $appliedCoupon['code'] ?? null;
+                $couponId = $appliedCoupon['id'] ?? null;
+            }
+
             // Calculate totals
             $subtotal = Cart::getCartTotal($cartToken);
-            $shipping = $subtotal > 1000 ? 0 : 100;
+            $discountedSubtotal = $subtotal - $couponDiscount;
+            $freeDeliveryAmount = config('app.free_delivery_order_amount', 5000);
+            $shipping = $discountedSubtotal >= $freeDeliveryAmount ? 0 : 100;
             $tax = $subtotal * 0.18; // 18% GST
-            $total = $subtotal + $shipping + $tax;
+            $total = $subtotal + $shipping + $tax - $couponDiscount;
 
             // Prepare addresses
             $billingAddress = [
@@ -98,7 +112,10 @@ class OrderController extends Controller
                     $tax,
                     $total,
                     $validated['billing-email'],
-                    $validated['order-notes'] ?? null
+                    $validated['order-notes'] ?? null,
+                    $couponId,
+                    $couponCode,
+                    $couponDiscount
                 );
             } else {
                 // Process online payment
@@ -112,7 +129,10 @@ class OrderController extends Controller
                     $tax,
                     $total,
                     $validated['billing-email'],
-                    $validated['order-notes'] ?? null
+                    $validated['order-notes'] ?? null,
+                    $couponId,
+                    $couponCode,
+                    $couponDiscount
                 );
             }
 
@@ -147,7 +167,10 @@ class OrderController extends Controller
         float $tax,
         float $total,
         string $email,
-        ?string $notes
+        ?string $notes,
+        ?int $couponId = null,
+        ?string $couponCode = null,
+        float $couponDiscount = 0
     ): JsonResponse {
         try {
             DB::beginTransaction();
@@ -165,6 +188,9 @@ class OrderController extends Controller
                 'shipping' => $shipping,
                 'tax' => $tax,
                 'total' => $total,
+                'coupon_id' => $couponId,
+                'coupon_code' => $couponCode,
+                'coupon_discount' => $couponDiscount,
                 'status' => 'confirmed',
                 'customer_notes' => $notes
             ]);
@@ -181,8 +207,9 @@ class OrderController extends Controller
                 ]);
             }
 
-            // Clear cart
+            // Clear cart and applied coupon
             Cart::where('cart_token', $cartToken)->delete();
+            session()->forget('applied_coupon');
 
             DB::commit();
 
@@ -219,7 +246,10 @@ class OrderController extends Controller
         float $tax,
         float $total,
         string $email,
-        ?string $notes
+        ?string $notes,
+        ?int $couponId = null,
+        ?string $couponCode = null,
+        float $couponDiscount = 0
     ): JsonResponse {
         try {
             // Create pending order first
@@ -235,6 +265,9 @@ class OrderController extends Controller
                 'shipping' => $shipping,
                 'tax' => $tax,
                 'total' => $total,
+                'coupon_id' => $couponId,
+                'coupon_code' => $couponCode,
+                'coupon_discount' => $couponDiscount,
                 'status' => 'pending',
                 'customer_notes' => $notes
             ]);
@@ -438,6 +471,13 @@ class OrderController extends Controller
                                     ])
                                 ]);
                                 
+                                // Clear cart and applied coupon on successful payment
+                                $cartToken = $request->cookie('cart_token');
+                                if ($cartToken) {
+                                    Cart::where('cart_token', $cartToken)->delete();
+                                }
+                                session()->forget('applied_coupon');
+                                
                                 return redirect()->route('order.success', ['order' => $order->order_number]);
                                 
                             case 'PENDING':
@@ -562,6 +602,13 @@ class OrderController extends Controller
                                 'gateway_response' => $statusResult
                             ])
                         ]);
+                        
+                        // Clear cart and applied coupon on successful payment
+                        $cartToken = request()->cookie('cart_token');
+                        if ($cartToken) {
+                            Cart::where('cart_token', $cartToken)->delete();
+                        }
+                        session()->forget('applied_coupon');
                         
                         return response()->json([
                             'success' => true,

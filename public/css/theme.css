@@ -629,11 +629,176 @@ p {
   font-size: 11px;
 }
 
-.applied-coupon {
+.applied-coupon-sidebar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-top: 6px;
+  padding: 8px;
+  background: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 4px;
   font-size: 11px;
+}
+
+.coupon-info-sidebar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.coupon-details {
+  flex: 1;
+}
+
+.coupon-name-line {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.coupon-name-line i {
+  color: #28a745;
+  margin-right: 4px;
+  font-size: 10px;
+}
+
+.coupon-info-sidebar .coupon-name {
+  color: #155724;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.coupon-code-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.coupon-info-sidebar .coupon-code {
+  color: #6c757d;
+  font-size: 9px;
+}
+
+.coupon-info-sidebar .coupon-savings {
   color: #28a745;
   font-weight: 600;
+  font-size: 9px;
+}
+
+#sidebar-remove-coupon-btn {
+  padding: 2px 6px;
+  margin-left: 6px;
+  border: 1px solid #28a745;
+  color: #28a745;
+  background: transparent;
+  border-radius: 3px;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+#sidebar-remove-coupon-btn:hover {
+  background: #28a745;
+  color: white;
+}
+
+.coupon-message-sidebar {
+  margin-top: 6px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  display: none;
+}
+
+.coupon-message-sidebar.success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.coupon-message-sidebar.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.free-delivery-info-sidebar {
+  margin: 8px 0;
+  text-align: center;
+}
+
+.discount-row {
+  color: #28a745;
+}
+
+/* Checkout Modal Styles */
+.checkout-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.checkout-item:last-child {
+  border-bottom: none;
+}
+
+.item-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.item-name {
+  font-weight: 600;
+  color: #333;
+}
+
+.item-quantity {
+  font-size: 0.9em;
+  color: #666;
+}
+
+.item-total {
+  font-weight: 600;
+  color: #333;
+}
+
+.order-totals {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.coupon-applied {
+  background-color: #d4edda;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin: 8px 0;
+  border: 1px solid #c3e6cb;
+}
+
+.coupon-applied i {
+  color: #28a745;
+  margin-right: 6px;
+}
+
+.coupon-applied small {
+  color: #6c757d;
+  margin-left: 6px;
+}
+
+.free-delivery-checkout {
+  margin: 8px 0;
+  text-align: center;
+}
+
+.total-row {
+  background-color: #f8f9fa;
+  padding: 12px;
+  border-radius: 4px;
+  margin-top: 8px;
 }
 
 /* Wishlist Item Styling */

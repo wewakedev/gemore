@@ -22,9 +22,10 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // Seed products and categories
+        // Seed products, categories, and coupons
         $this->call([
             ProductSeeder::class,
+            CouponSeeder::class,
         ]);
     }
 }

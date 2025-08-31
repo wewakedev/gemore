@@ -400,6 +400,77 @@
                 flex-direction: column;
             }
         }
+        
+        /* Coupon Styles */
+        .coupon-section {
+            margin: 1rem 0;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .coupon-input {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .coupon-input input {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .applied-coupon {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .coupon-info .coupon-name {
+            font-weight: bold;
+            color: #155724;
+        }
+        
+        .coupon-info .coupon-code {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-left: 0.5rem;
+        }
+        
+        .coupon-message {
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            display: none;
+        }
+        
+        .coupon-message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .coupon-message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .discount-row {
+            color: #28a745;
+        }
+        
+        .free-delivery-info {
+            margin: 0.5rem 0;
+            text-align: center;
+        }
     </style>
 @endsection
 
@@ -479,30 +550,52 @@
                         </div>
                         <div class="summary-row">
                             <span>Shipping:</span>
-                            <span id="cart-shipping">{{ $total > 1000 ? 'Free' : '₹100.00' }}</span>
+                            <span id="cart-shipping">{{ $total >= config('app.free_delivery_order_amount', 5000) ? 'Free' : '₹100.00' }}</span>
                         </div>
                         <div class="summary-row">
-                            <span>Tax:</span>
+                            <span>Tax (18% GST):</span>
                             <span id="cart-tax">₹{{ number_format($total * 0.18, 2) }}</span>
                         </div>
-                        <div class="coupon-section">
+                        
+                        <!-- Coupon Section -->
+                        <div class="coupon-section" id="coupon-section">
                             <h5>Have a coupon?</h5>
-                            <div class="coupon-input">
-                                <input type="text" id="coupon-code" placeholder="Enter coupon code" />
-                                <button class="btn btn-secondary" id="apply-coupon">Apply</button>
+                            <div class="coupon-input" id="coupon-input-section">
+                                <input type="text" id="coupon-code" placeholder="Enter coupon code" maxlength="50" />
+                                <button class="btn btn-secondary" id="apply-coupon-btn">Apply</button>
+                            </div>
+                            <div class="applied-coupon" id="applied-coupon-section" style="display: none;">
+                                <div class="coupon-info">
+                                    <span class="coupon-name" id="applied-coupon-name"></span>
+                                    <span class="coupon-code" id="applied-coupon-code"></span>
+                                </div>
+                                <button class="btn btn-sm btn-outline" id="remove-coupon-btn">Remove</button>
                             </div>
                             <div class="coupon-message" id="coupon-message"></div>
                         </div>
-                        <div class="summary-row discount-row" id="discount-row" style="display: none">
+                        
+                        <div class="summary-row discount-row" id="discount-row" style="display: none;">
                             <span>Discount:</span>
-                            <span id="cart-discount">-₹0</span>
+                            <span id="cart-discount" class="text-success">-₹0.00</span>
                         </div>
+                        
                         <hr />
                         <div class="summary-row total-row">
                             <span><strong>Total:</strong></span>
-                            <span><strong
-                                    id="cart-total">₹{{ number_format($total + ($total > 1000 ? 0 : 100) + $total * 0.18, 2) }}</strong></span>
+                            <span><strong id="cart-total">₹{{ number_format($total + ($total >= config('app.free_delivery_order_amount', 5000) ? 0 : 100) + $total * 0.18, 2) }}</strong></span>
                         </div>
+                        
+                        <div class="free-delivery-info" id="free-delivery-info">
+                            <small class="text-muted">
+                                <i class="fa fa-truck"></i>
+                                @if($total >= config('app.free_delivery_order_amount', 5000))
+                                    You qualify for free delivery!
+                                @else
+                                    Add ₹{{ number_format(config('app.free_delivery_order_amount', 5000) - $total, 2) }} more for free delivery
+                                @endif
+                            </small>
+                        </div>
+                        
                         <div class="cart-actions">
                             <button class="btn btn-outline" id="clear-cart-btn">Clear Cart</button>
                             <button class="btn btn-primary btn-lg" id="checkout-btn">Proceed to Checkout</button>
@@ -519,9 +612,20 @@
     <script>
         // Cart functionality
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize coupon state from server data or localStorage
+            initializeCouponState();
+            
             // Event listeners
             document.getElementById('checkout-btn').addEventListener('click', proceedToCheckout);
-            document.getElementById('apply-coupon').addEventListener('click', applyCoupon);
+            document.getElementById('apply-coupon-btn').addEventListener('click', applyCoupon);
+            document.getElementById('remove-coupon-btn').addEventListener('click', removeCoupon);
+            
+            // Allow Enter key to apply coupon
+            document.getElementById('coupon-code').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    applyCoupon();
+                }
+            });
             document.getElementById('clear-cart-btn').addEventListener('click', clearCart);
             
             // Checkout modal event listeners
@@ -579,17 +683,41 @@
             updateCartTotals(cartData);
         }
 
-        // Function to update cart totals
+        // Function to update cart totals using API response
         function updateCartTotals(cartData) {
-            const subtotal = cartData.total || 0;
-            const shipping = subtotal > 1000 ? 0 : 100;
-            const tax = subtotal * 0.18;
-            const total = subtotal + shipping + tax;
+            const totals = cartData.totals || {};
+            
+            // Update all total fields from API response
+            document.getElementById('cart-subtotal').textContent = `₹${(totals.subtotal || 0).toFixed(2)}`;
+            document.getElementById('cart-shipping').textContent = totals.shipping === 0 ? 'Free' : `₹${(totals.shipping || 0).toFixed(2)}`;
+            document.getElementById('cart-tax').textContent = `₹${(totals.tax || 0).toFixed(2)}`;
+            document.getElementById('cart-total').textContent = `₹${(totals.total || 0).toFixed(2)}`;
+            
+            // Update discount row
+            const discountRow = document.getElementById('discount-row');
+            if (totals.discount && totals.discount > 0) {
+                document.getElementById('cart-discount').textContent = `-₹${totals.discount.toFixed(2)}`;
+                discountRow.style.display = 'flex';
+            } else {
+                discountRow.style.display = 'none';
+            }
+            
+            // Update free delivery info
+            updateFreeDeliveryInfo(totals);
+        }
 
-            document.getElementById('cart-subtotal').textContent = `₹${subtotal.toFixed(2)}`;
-            document.getElementById('cart-shipping').textContent = shipping === 0 ? 'Free' : `₹${shipping.toFixed(2)}`;
-            document.getElementById('cart-tax').textContent = `₹${tax.toFixed(2)}`;
-            document.getElementById('cart-total').textContent = `₹${total.toFixed(2)}`;
+        // Function to update free delivery information
+        function updateFreeDeliveryInfo(totals) {
+            const freeDeliveryInfo = document.getElementById('free-delivery-info');
+            const freeDeliveryAmount = totals.free_delivery_amount || 5000;
+            const currentSubtotal = totals.discounted_subtotal || totals.subtotal || 0;
+            
+            if (currentSubtotal >= freeDeliveryAmount) {
+                freeDeliveryInfo.innerHTML = '<small class="text-muted"><i class="fa fa-truck"></i> You qualify for free delivery!</small>';
+            } else {
+                const remaining = freeDeliveryAmount - currentSubtotal;
+                freeDeliveryInfo.innerHTML = `<small class="text-muted"><i class="fa fa-truck"></i> Add ₹${remaining.toFixed(2)} more for free delivery</small>`;
+            }
         }
 
         // Function to clear entire cart
@@ -618,53 +746,169 @@
             }
         }
 
+        // Coupon functionality
+        let appliedCoupon = null;
+
+        function initializeCouponState() {
+            // Check if server provided coupon data
+            @if(session('applied_coupon'))
+                const serverCoupon = @json(session('applied_coupon'));
+                if (serverCoupon) {
+                    appliedCoupon = serverCoupon;
+                    showAppliedCoupon(serverCoupon);
+                    
+                    // Store globally and in localStorage
+                    if (typeof CartFunctions !== 'undefined') {
+                        CartFunctions.globalAppliedCoupon = serverCoupon;
+                        CartFunctions.sidebarAppliedCoupon = serverCoupon;
+                        CartFunctions.saveCouponToStorage(serverCoupon);
+                    }
+                    
+                    console.log('Restored coupon from server session:', serverCoupon);
+                    return;
+                }
+            @endif
+            
+            // No server coupon, check localStorage and validate
+            if (typeof CartFunctions !== 'undefined') {
+                const storedCoupon = CartFunctions.loadCouponFromStorage();
+                if (storedCoupon) {
+                    console.log('Found stored coupon, validating:', storedCoupon);
+                    CartFunctions.validateStoredCoupon(storedCoupon);
+                }
+            }
+        }
+
         function applyCoupon() {
             const couponCode = document.getElementById('coupon-code').value.trim();
-            const messageDiv = document.getElementById('coupon-message');
+            const applyBtn = document.getElementById('apply-coupon-btn');
 
             if (!couponCode) {
                 showCouponMessage('Please enter a coupon code', 'error');
                 return;
             }
 
-            // Simulate coupon validation
-            const validCoupons = {
-                'WELCOME10': {
-                    discount: 10,
-                    type: 'percentage'
+            // Disable button and show loading
+            applyBtn.disabled = true;
+            applyBtn.textContent = 'Applying...';
+            clearCouponMessage();
+
+            fetch('/coupon/apply', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 },
-                'SAVE100': {
-                    discount: 100,
-                    type: 'fixed'
-                },
-                'NEWUSER': {
-                    discount: 15,
-                    type: 'percentage'
+                body: JSON.stringify({
+                    coupon_code: couponCode
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    appliedCoupon = data.data.coupon;
+                    updateCartTotals({ totals: data.data.totals });
+                    showAppliedCoupon(appliedCoupon);
+                    showCouponMessage(`Coupon applied! You saved ₹${appliedCoupon.discount_amount.toFixed(2)}`, 'success');
+                    
+                    // Store globally for checkout modal and localStorage
+                    if (typeof CartFunctions !== 'undefined') {
+                        CartFunctions.globalAppliedCoupon = appliedCoupon;
+                        CartFunctions.saveCouponToStorage(appliedCoupon);
+                        CartFunctions.updateCheckoutTotals(data.data.totals);
+                    }
+                } else {
+                    showCouponMessage(data.message || 'Invalid coupon code', 'error');
                 }
-            };
+            })
+            .catch(error => {
+                console.error('Error applying coupon:', error);
+                showCouponMessage('An error occurred while applying the coupon', 'error');
+            })
+            .finally(() => {
+                applyBtn.disabled = false;
+                applyBtn.textContent = 'Apply';
+            });
+        }
 
-            const coupon = validCoupons[couponCode.toUpperCase()];
+        function removeCoupon() {
+            const removeBtn = document.getElementById('remove-coupon-btn');
+            
+            // Disable button and show loading
+            removeBtn.disabled = true;
+            removeBtn.textContent = 'Removing...';
+            clearCouponMessage();
 
-            if (coupon) {
-                showCouponMessage(
-                    `Coupon applied! You saved ${coupon.type === 'percentage' ? coupon.discount + '%' : '₹' + coupon.discount}`,
-                    'success');
-                document.getElementById('discount-row').style.display = 'flex';
-                // Apply discount logic here
-            } else {
-                showCouponMessage('Invalid coupon code', 'error');
-            }
+            fetch('/coupon/remove', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    appliedCoupon = null;
+                    updateCartTotals({ totals: data.data.totals });
+                    hideAppliedCoupon();
+                    showCouponMessage('Coupon removed successfully', 'success');
+                    
+                    // Clear globally, localStorage and update checkout modal
+                    if (typeof CartFunctions !== 'undefined') {
+                        CartFunctions.globalAppliedCoupon = null;
+                        CartFunctions.saveCouponToStorage(null);
+                        CartFunctions.updateCheckoutTotals(data.data.totals);
+                    }
+                } else {
+                    showCouponMessage(data.message || 'Error removing coupon', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error removing coupon:', error);
+                showCouponMessage('An error occurred while removing the coupon', 'error');
+            })
+            .finally(() => {
+                removeBtn.disabled = false;
+                removeBtn.textContent = 'Remove';
+            });
+        }
+
+        function showAppliedCoupon(coupon) {
+            document.getElementById('applied-coupon-name').textContent = coupon.name || 'Coupon';
+            document.getElementById('applied-coupon-code').textContent = `(${coupon.code})`;
+            document.getElementById('coupon-input-section').style.display = 'none';
+            document.getElementById('applied-coupon-section').style.display = 'flex';
+            document.getElementById('coupon-code').value = '';
+        }
+
+        function hideAppliedCoupon() {
+            document.getElementById('coupon-input-section').style.display = 'flex';
+            document.getElementById('applied-coupon-section').style.display = 'none';
         }
 
         function showCouponMessage(message, type) {
             const messageDiv = document.getElementById('coupon-message');
             messageDiv.textContent = message;
             messageDiv.className = `coupon-message ${type}`;
+            messageDiv.style.display = 'block';
+        }
+
+        function clearCouponMessage() {
+            const messageDiv = document.getElementById('coupon-message');
+            messageDiv.textContent = '';
+            messageDiv.className = 'coupon-message';
+            messageDiv.style.display = 'none';
         }
 
         function proceedToCheckout() {
             const checkoutModal = document.getElementById("checkout-modal");
             checkoutModal.classList.add("active");
+            
+            // Update checkout modal with current cart data
+            if (typeof CartFunctions !== 'undefined') {
+                CartFunctions.updateCheckoutForm();
+            }
         }
 
         function hideCheckout() {
