@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\Contact;
+use App\Mail\ContactFormSubmitted;
 
 class HomeController extends Controller
 {
@@ -37,16 +39,35 @@ class HomeController extends Controller
         ]);
 
         try {
-            // Here you would send the email using Laravel's Mail facade
-            // For now, we'll just log it and return success
-            Log::info('Contact form submission', $request->all());
+            // Save contact data to database
+            $contact = Contact::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'subject' => $request->subject,
+                'message' => $request->message,
+                'status' => 'new',
+            ]);
+
+            // Send confirmation email to the user
+            Mail::to($contact->email)->send(new ContactFormSubmitted($contact));
+
+            // Log the successful submission
+            Log::info('Contact form submission saved and email sent', [
+                'contact_id' => $contact->id,
+                'name' => $contact->name,
+                'email' => $contact->email,
+            ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Thank you! We\'ll get back to you soon.',
+                'message' => 'Thank you! We\'ve received your message and sent you a confirmation email. We\'ll get back to you soon.',
             ]);
         } catch (\Exception $e) {
-            Log::error('Contact form error: ' . $e->getMessage());
+            Log::error('Contact form error: ' . $e->getMessage(), [
+                'request_data' => $request->all(),
+                'error_trace' => $e->getTraceAsString(),
+            ]);
             
             return response()->json([
                 'success' => false,

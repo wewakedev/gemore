@@ -18,7 +18,7 @@ class ProductController extends Controller
     public function apiIndex(Request $request)
     {
         $query = Product::with(['category', 'activeVariants'])
-            ->active();
+            ->where('products.is_active', true);
 
         // Category filter
         if ($request->has('category') && $request->category !== 'all') {
@@ -51,16 +51,45 @@ class ProductController extends Controller
         }
 
         // Sorting
-        $sortBy = $request->get('sortBy', 'created_at');
-        $sortOrder = $request->get('sortOrder', 'desc');
+        $sort = $request->get('sort', 'newest');
+        
+        // Parse sort parameter
+        switch ($sort) {
+            case 'price-low':
+                $sortBy = 'price';
+                $sortOrder = 'asc';
+                break;
+            case 'price-high':
+                $sortBy = 'price';
+                $sortOrder = 'desc';
+                break;
+            case 'name-asc':
+                $sortBy = 'name';
+                $sortOrder = 'asc';
+                break;
+            case 'name-desc':
+                $sortBy = 'name';
+                $sortOrder = 'desc';
+                break;
+            case 'oldest':
+                $sortBy = 'created_at';
+                $sortOrder = 'asc';
+                break;
+            case 'newest':
+            default:
+                $sortBy = 'created_at';
+                $sortOrder = 'desc';
+                break;
+        }
         
         if ($sortBy === 'price') {
-            // Sort by minimum variant price
-            $query->leftJoin('product_variants', 'products.id', '=', 'product_variants.product_id')
-                  ->where('product_variants.is_active', true)
-                  ->orderBy('product_variants.price', $sortOrder)
-                  ->select('products.*')
-                  ->groupBy('products.id');
+            // Sort by minimum variant price using a subquery
+            $query->orderByRaw("(
+                SELECT MIN(pv.price) 
+                FROM product_variants pv 
+                WHERE pv.product_id = products.id 
+                AND pv.is_active = 1
+            ) {$sortOrder}");
         } else {
             $query->orderBy($sortBy, $sortOrder);
         }
