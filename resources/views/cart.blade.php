@@ -419,12 +419,41 @@
         <div class="row">
             <div class="col-lg-8">
                 <!-- Cart Items -->
-                <div class="cart-items-container" id="cart-items-container">
-                    <!-- Cart items will be loaded here -->
+                <div class="cart-items-container" id="cart-items-container" style="{{ $cartItems->count() > 0 ? '' : 'display: none;' }}">
+                    @if($cartItems->count() > 0)
+                        @foreach($cartItems as $item)
+                            <div class="cart-item" data-product-id="{{ $item->product_id }}">
+                                <div class="item-image">
+                                    <img src="{{ $item->product->images && count($item->product->images) > 0 ? asset('images/' . $item->product->images[0]) : asset('images/placeholder.png') }}" alt="{{ $item->product->name }}" />
+                                </div>
+                                <div class="item-details">
+                                    <div class="item-name">{{ $item->product->name }}</div>
+                                    <div class="item-variant">{{ $item->product->defaultVariant ? $item->product->defaultVariant->name : 'Default' }}</div>
+                                    <div class="item-price">
+                                        ₹{{ $item->product->defaultVariant ? $item->product->defaultVariant->price : '0.00' }}
+                                    </div>
+                                </div>
+                                <div class="quantity-controls">
+                                    <button class="quantity-btn" onclick="updateQuantity({{ $item->product_id }}, -1)">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    <input type="number" class="quantity-input" value="{{ $item->quantity }}" min="1" 
+                                           onchange="setQuantity({{ $item->product_id }}, this.value)">
+                                    <button class="quantity-btn" onclick="updateQuantity({{ $item->product_id }}, 1)">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                                <div class="item-total">₹{{ ($item->product->defaultVariant ? $item->product->defaultVariant->price : 0) * $item->quantity }}</div>
+                                <button class="remove-item" onclick="removeFromCart({{ $item->product_id }})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        @endforeach
+                    @endif
                 </div>
 
                 <!-- Empty Cart -->
-                <div class="empty-cart" id="empty-cart" style="display: none">
+                <div class="empty-cart" id="empty-cart" style="{{ $cartItems->count() > 0 ? 'display: none;' : '' }}">
                     <div class="text-center">
                         <i class="fas fa-shopping-cart empty-cart-icon"></i>
                         <h3>Your cart is empty</h3>
@@ -440,15 +469,15 @@
                     <h4>Order Summary</h4>
                     <div class="summary-row">
                         <span>Subtotal:</span>
-                        <span id="cart-subtotal">₹0</span>
+                        <span id="cart-subtotal">₹{{ number_format($total, 2) }}</span>
                     </div>
                     <div class="summary-row">
                         <span>Shipping:</span>
-                        <span id="cart-shipping">₹0</span>
+                        <span id="cart-shipping">{{ $total > 1000 ? 'Free' : '₹100.00' }}</span>
                     </div>
                     <div class="summary-row">
                         <span>Tax:</span>
-                        <span id="cart-tax">₹0</span>
+                        <span id="cart-tax">₹{{ number_format($total * 0.18, 2) }}</span>
                     </div>
                     <div class="coupon-section">
                         <h5>Have a coupon?</h5>
@@ -465,7 +494,7 @@
                     <hr />
                     <div class="summary-row total-row">
                         <span><strong>Total:</strong></span>
-                        <span><strong id="cart-total">₹0</strong></span>
+                        <span><strong id="cart-total">₹{{ number_format($total + ($total > 1000 ? 0 : 100) + ($total * 0.18), 2) }}</strong></span>
                     </div>
                     <div class="cart-actions">
                         <button class="btn btn-outline" id="clear-cart-btn">Clear Cart</button>
@@ -479,11 +508,10 @@
 @endsection
 
 @section('additional_js')
+<script src="{{ asset('js/cart-functions.js') }}"></script>
 <script>
 // Cart functionality
 document.addEventListener('DOMContentLoaded', function() {
-    loadCart();
-    
     // Event listeners
     document.getElementById('clear-cart-btn').addEventListener('click', clearCart);
     document.getElementById('checkout-btn').addEventListener('click', proceedToCheckout);
@@ -491,98 +519,208 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function loadCart() {
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
-    const cartContainer = document.getElementById('cart-items-container');
-    const emptyCart = document.getElementById('empty-cart');
-    
-    if (cart.length === 0) {
+    // Fetch cart from backend
+    fetch('/cart/data')
+    .then(response => response.json())
+    .then(data => {
+        const cartContainer = document.getElementById('cart-items-container');
+        const emptyCart = document.getElementById('empty-cart');
+        
+        if (!data.success || data.data.items.length === 0) {
+            cartContainer.style.display = 'none';
+            emptyCart.style.display = 'block';
+            updateCartSummary([]);
+            return;
+        }
+        
+        const cart = data.data.items;
+        
+        cartContainer.style.display = 'block';
+        emptyCart.style.display = 'none';
+        
+        cartContainer.innerHTML = cart.map(item => `
+            <div class="cart-item" data-product-id="${item.product_id}">
+                <div class="item-image">
+                    <img src="${item.product.images && item.product.images.length > 0 ? '/images/' + item.product.images[0] : '/images/placeholder.png'}" alt="${item.product.name}" />
+                </div>
+                <div class="item-details">
+                    <div class="item-name">${item.product.name}</div>
+                    <div class="item-variant">${item.product.defaultVariant ? item.product.defaultVariant.name : 'Default'}</div>
+                    <div class="item-price">
+                        ₹${item.product.defaultVariant ? item.product.defaultVariant.price : '0.00'}
+                    </div>
+                </div>
+                <div class="quantity-controls">
+                    <button class="quantity-btn" onclick="updateQuantity(${item.product_id}, -1)">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <input type="number" class="quantity-input" value="${item.quantity}" min="1" 
+                           onchange="setQuantity(${item.product_id}, this.value)">
+                    <button class="quantity-btn" onclick="updateQuantity(${item.product_id}, 1)">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                <div class="item-total">₹${(item.product.defaultVariant ? item.product.defaultVariant.price : 0) * item.quantity}</div>
+                <button class="remove-item" onclick="removeFromCart(${item.product_id})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `).join('');
+        
+        updateCartSummary(cart);
+    })
+    .catch(error => {
+        console.error('Error loading cart:', error);
+        const cartContainer = document.getElementById('cart-items-container');
+        const emptyCart = document.getElementById('empty-cart');
         cartContainer.style.display = 'none';
         emptyCart.style.display = 'block';
         updateCartSummary([]);
-        return;
-    }
-    
-    cartContainer.style.display = 'block';
-    emptyCart.style.display = 'none';
-    
-    cartContainer.innerHTML = cart.map(item => `
-        <div class="cart-item" data-product-id="${item.productId}" data-variant-id="${item.variantId}">
-            <div class="item-image">
-                <img src="${item.image}" alt="${item.name}" />
-            </div>
-            <div class="item-details">
-                <div class="item-name">${item.name}</div>
-                <div class="item-variant">${item.variant}</div>
-                <div class="item-price">
-                    ${item.originalPrice && item.originalPrice > item.price ? 
-                        `<span class="original-price">₹${item.originalPrice}</span>` : ''}
-                    ₹${item.price}
-                </div>
-            </div>
-            <div class="quantity-controls">
-                <button class="quantity-btn" onclick="updateQuantity(${item.productId}, ${item.variantId}, -1)">
-                    <i class="fas fa-minus"></i>
-                </button>
-                <input type="number" class="quantity-input" value="${item.quantity}" min="1" 
-                       onchange="setQuantity(${item.productId}, ${item.variantId}, this.value)">
-                <button class="quantity-btn" onclick="updateQuantity(${item.productId}, ${item.variantId}, 1)">
-                    <i class="fas fa-plus"></i>
-                </button>
-            </div>
-            <div class="item-total">₹${(item.price * item.quantity).toFixed(2)}</div>
-            <button class="remove-item" onclick="removeFromCart(${item.productId}, ${item.variantId})">
-                <i class="fas fa-trash"></i>
-            </button>
-        </div>
-    `).join('');
-    
-    updateCartSummary(cart);
+    });
 }
 
-function updateQuantity(productId, variantId, change) {
-    let cart = JSON.parse(localStorage.getItem('cart')) || [];
-    const itemIndex = cart.findIndex(item => item.productId === productId && item.variantId === variantId);
-    
-    if (itemIndex !== -1) {
-        cart[itemIndex].quantity += change;
-        if (cart[itemIndex].quantity <= 0) {
-            cart.splice(itemIndex, 1);
-        }
-        localStorage.setItem('cart', JSON.stringify(cart));
-        loadCart();
+function updateQuantity(productId, change) {
+    // Use shared cart functions
+    if (typeof CartFunctions !== 'undefined') {
+        // Get current quantity first
+        fetch('/cart/data')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const cartItem = data.data.items.find(item => item.product_id == productId);
+                if (cartItem) {
+                    const newQuantity = cartItem.quantity + change;
+                    if (newQuantity <= 0) {
+                        CartFunctions.removeFromCart(productId);
+                    } else {
+                        CartFunctions.updateQuantity(productId, newQuantity);
+                    }
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error updating quantity:', error);
+        });
+    } else {
+        // Fallback implementation
+        // Get current quantity first
+        fetch('/cart/data')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const cartItem = data.data.items.find(item => item.product_id == productId);
+                if (cartItem) {
+                    const newQuantity = cartItem.quantity + change;
+                    if (newQuantity <= 0) {
+                        removeFromCart(productId);
+                    } else {
+                        setQuantity(productId, newQuantity);
+                    }
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error updating quantity:', error);
+        });
     }
 }
 
-function setQuantity(productId, variantId, quantity) {
+function setQuantity(productId, quantity) {
     quantity = parseInt(quantity);
     if (quantity <= 0) return;
     
-    let cart = JSON.parse(localStorage.getItem('cart')) || [];
-    const itemIndex = cart.findIndex(item => item.productId === productId && item.variantId === variantId);
-    
-    if (itemIndex !== -1) {
-        cart[itemIndex].quantity = quantity;
-        localStorage.setItem('cart', JSON.stringify(cart));
-        loadCart();
+    // Use shared cart functions
+    if (typeof CartFunctions !== 'undefined') {
+        CartFunctions.updateQuantity(productId, quantity);
+    } else {
+        // Fallback implementation
+        fetch(`/cart/update/${productId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ quantity: quantity })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadCart();
+            } else {
+                console.error('Error updating quantity:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error updating quantity:', error);
+        });
     }
 }
 
-function removeFromCart(productId, variantId) {
-    let cart = JSON.parse(localStorage.getItem('cart')) || [];
-    cart = cart.filter(item => !(item.productId === productId && item.variantId === variantId));
-    localStorage.setItem('cart', JSON.stringify(cart));
-    loadCart();
+function removeFromCart(productId) {
+    // Use shared cart functions
+    if (typeof CartFunctions !== 'undefined') {
+        CartFunctions.removeFromCart(productId);
+    } else {
+        // Fallback implementation
+        fetch(`/cart/remove/${productId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadCart();
+            } else {
+                console.error('Error removing item:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error removing item:', error);
+        });
+    }
 }
 
 function clearCart() {
     if (confirm('Are you sure you want to clear your cart?')) {
-        localStorage.removeItem('cart');
-        loadCart();
+        // Clear all items from cart via API
+        fetch('/cart/data')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data.items.length > 0) {
+                // Remove each item one by one
+                const removePromises = data.data.items.map(item => 
+                    fetch(`/cart/remove/${item.product_id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        }
+                    })
+                );
+                
+                Promise.all(removePromises)
+                .then(() => {
+                    loadCart();
+                })
+                .catch(error => {
+                    console.error('Error clearing cart:', error);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error clearing cart:', error);
+        });
     }
 }
 
 function updateCartSummary(cart) {
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const subtotal = cart.reduce((sum, item) => {
+        const price = item.product.defaultVariant ? parseFloat(item.product.defaultVariant.price) : 0;
+        return sum + (price * item.quantity);
+    }, 0);
     const shipping = subtotal > 1000 ? 0 : 100; // Free shipping over ₹1000
     const tax = subtotal * 0.18; // 18% GST
     const total = subtotal + shipping + tax;
@@ -627,15 +765,21 @@ function showCouponMessage(message, type) {
 }
 
 function proceedToCheckout() {
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
-    
-    if (cart.length === 0) {
-        alert('Your cart is empty');
-        return;
-    }
-    
-    // Redirect to checkout page
-    window.location.href = '/checkout';
+    // Check if cart has items via API
+    fetch('/cart/data')
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.data.items.length > 0) {
+            // Redirect to checkout page
+            window.location.href = '/checkout';
+        } else {
+            alert('Your cart is empty');
+        }
+    })
+    .catch(error => {
+        console.error('Error checking cart:', error);
+        alert('Error checking cart');
+    });
 }
 </script>
 @endsection 

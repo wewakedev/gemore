@@ -606,6 +606,7 @@
 @endsection
 
 @section('additional_js')
+<script src="{{ asset('js/cart-functions.js') }}"></script>
 <script>
 class StoreManager {
     constructor() {
@@ -762,11 +763,11 @@ class StoreManager {
                         ` : ''}
                         
                         <div class="product-price">
-                            ${product.discount_price && product.discount_price < product.min_price ? `
-                                <span class="original-price">₹${new Intl.NumberFormat('en-IN').format(product.min_price)}</span>
-                                <span class="current-price">₹${new Intl.NumberFormat('en-IN').format(product.discount_price)}</span>
+                            ${product.discount_price != null && product.discount_price < product.min_price ? `
+                                <span class="original-price">₹${new Intl.NumberFormat('en-IN').format(product.min_price || 0)}</span>
+                                <span class="current-price">₹${new Intl.NumberFormat('en-IN').format(product.discount_price || product.min_price || 0)}</span>
                             ` : `
-                                <span class="current-price">₹${new Intl.NumberFormat('en-IN').format(product.min_price)}</span>
+                                <span class="current-price">₹${new Intl.NumberFormat('en-IN').format(product.min_price || 0)}</span>
                             `}
                         </div>
                         
@@ -842,15 +843,44 @@ const storeManager = new StoreManager();
 
 // Utility functions
 function addToCart(productId) {
-    // This will be implemented with proper cart functionality
-    console.log('Adding product to cart:', productId);
-    alert('Add to cart functionality will be implemented');
+    // Use shared cart functions
+    if (typeof CartFunctions !== 'undefined') {
+        CartFunctions.addToCart(productId, 1);
+    } else {
+        // Fallback to direct implementation
+        fetch(`/cart/add/${productId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({
+                quantity: 1
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+            } else {
+                showNotification(data.message || 'Error adding product to cart', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error adding to cart:', error);
+            showNotification('Error adding product to cart', 'error');
+        });
+    }
 }
 
 function buyNow(productId) {
-    // This will be implemented with proper checkout functionality
-    console.log('Buy now for product:', productId);
-    alert('Buy now functionality will be implemented');
+    // Use shared cart functions
+    if (typeof CartFunctions !== 'undefined') {
+        CartFunctions.buyNow(productId, 1);
+    } else {
+        // Fallback to direct implementation
+        alert('Buy now functionality will be implemented');
+    }
 }
 
 function toggleWishlist(productId) {
@@ -864,5 +894,51 @@ function quickView(productId) {
     console.log('Quick view for product:', productId);
     alert('Quick view functionality will be implemented');
 }
+
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type} notification`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        min-width: 300px;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        animation: slideIn 0.3s ease;
+    `;
+    notification.textContent = message;
+
+    // Add to page
+    document.body.appendChild(notification);
+
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 300);
+    }, 3000);
+}
+
+// Add CSS for notifications
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+    .notification {
+        animation: slideIn 0.3s ease;
+    }
+`;
+document.head.appendChild(style);
 </script>
 @endsection 

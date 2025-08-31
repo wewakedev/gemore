@@ -124,8 +124,158 @@ class ProductSeeder extends Seeder
         $bcaa = Category::where('slug', 'bcaa')->first();
         $glutamine = Category::where('slug', 'glutamine')->first();
 
-        // Create only the missing products (Mass Gainer, BCAA, Glutamine)
+        // Create products for all categories
         $newProducts = [
+            // Whey Protein
+            [
+                'name' => 'Premium Whey Protein',
+                'description' => 'High-quality whey protein isolate for muscle building and recovery.',
+                'category_id' => $wheyProtein->id,
+                'brand' => 'Ge More Nutralife',
+                'sku' => 'GMP-WP-001',
+                'images' => ['WHEY PROTEIN CHOCOLATE.png', 'WHEY PROTEIN CHOCOLATE 2.png', 'WHEY PROTEIN CHOCOLATE 3.png'],
+                'tags' => ['whey protein', 'protein powder', 'muscle building', 'recovery'],
+                'features' => ['High protein content', 'Low fat', 'Instant mixing', 'Great taste'],
+                'specifications' => [
+                    'servingSize' => '30g',
+                    'servingsPerContainer' => '33 (1kg)',
+                    'nutritionFacts' => [
+                        ['nutrient' => 'Calories', 'amount' => '120', 'dailyValue' => '6%'],
+                        ['nutrient' => 'Protein', 'amount' => '24g', 'dailyValue' => '48%'],
+                        ['nutrient' => 'Carbohydrates', 'amount' => '3g', 'dailyValue' => '1%']
+                    ]
+                ],
+                'is_active' => true,
+                'is_featured' => true,
+                'sort_order' => 1,
+                'seo' => [
+                    'meta_title' => 'Premium Whey Protein | Ge More Nutralife',
+                    'meta_description' => 'High-quality whey protein for muscle building and recovery.',
+                    'meta_keywords' => 'whey protein, protein powder, muscle building, workout supplement'
+                ],
+                'variants' => [
+                    [
+                        'name' => 'Chocolate',
+                        'size' => '1kg',
+                        'price' => 2499.00,
+                        'original_price' => 2999.00,
+                        'stock' => 100,
+                        'images' => ['WHEY PROTEIN CHOCOLATE 1.png', 'WHEY PROTEIN CHOCOLATE 2.png', 'WHEY PROTEIN CHOCOLATE 3.png'],
+                        'is_active' => true,
+                        'is_default' => true
+                    ],
+                    [
+                        'name' => 'Kesar Kulfi',
+                        'size' => '1kg',
+                        'price' => 2499.00,
+                        'original_price' => 2999.00,
+                        'stock' => 100,
+                        'images' => ['WHEY PROTEIN KESAR KULFI 1.png', 'WHEY PROTEIN KESAR KULFI 2.png', 'WHEY PROTEIN KESAR KULFI 3.png'],
+                        'is_active' => true,
+                        'is_default' => false
+                    ]
+                ]
+            ],
+            // Pre Workout
+            [
+                'name' => 'Premium Pre Workout',
+                'description' => 'Energy-boosting pre-workout supplement for enhanced performance and focus.',
+                'category_id' => $preWorkout->id,
+                'brand' => 'Ge More Nutralife',
+                'sku' => 'GMP-PW-001',
+                'images' => ['PREWORKOUT FRUIT PUNCH.jpg', 'PREWORKOUT FRUIT PUNCH 2.png', 'PREWORKOUT FRUIT PUNCH 3.png'],
+                'tags' => ['pre workout', 'energy', 'focus', 'performance'],
+                'features' => ['Energy boost', 'Mental focus', 'Endurance', 'Great taste'],
+                'specifications' => [
+                    'servingSize' => '15g',
+                    'servingsPerContainer' => '20',
+                    'nutritionFacts' => [
+                        ['nutrient' => 'Calories', 'amount' => '60', 'dailyValue' => '3%'],
+                        ['nutrient' => 'Caffeine', 'amount' => '200mg', 'dailyValue' => '-'],
+                        ['nutrient' => 'Creatine', 'amount' => '3g', 'dailyValue' => '-']
+                    ]
+                ],
+                'is_active' => true,
+                'is_featured' => true,
+                'sort_order' => 2,
+                'seo' => [
+                    'meta_title' => 'Premium Pre Workout | Ge More Nutralife',
+                    'meta_description' => 'Energy-boosting pre-workout for enhanced performance.',
+                    'meta_keywords' => 'pre workout, energy supplement, workout booster, gym supplement'
+                ],
+                'variants' => [
+                    [
+                        'name' => 'Fruit Punch',
+                        'size' => '300g',
+                        'price' => 1999.00,
+                        'original_price' => 2499.00,
+                        'stock' => 80,
+                        'images' => ['PRE WORKOUT FRUIT PUNCH 1.png', 'PRE WORKOUT FRUIT PUNCH 2.png', 'PRE WORKOUT FRUIT PUNCH 3.png'],
+                        'is_active' => true,
+                        'is_default' => true
+                    ],
+                    [
+                        'name' => 'Tangy Orange',
+                        'size' => '300g',
+                        'price' => 1999.00,
+                        'original_price' => 2499.00,
+                        'stock' => 80,
+                        'images' => ['PRE WORKOUT TANGY ORANGE 1.png', 'PRE WORKOUT TANGY ORANGE 2.png', 'PRE WORKOUT TANGY ORANGE 3.png'],
+                        'is_active' => true,
+                        'is_default' => false
+                    ]
+                ]
+            ],
+            // Creatine
+            [
+                'name' => 'Premium Creatine Monohydrate',
+                'description' => 'Pure creatine monohydrate for enhanced strength and power.',
+                'category_id' => $creatine->id,
+                'brand' => 'Ge More Nutralife',
+                'sku' => 'GMP-CRE-001',
+                'images' => ['CREATINE TANGY ORANGE.jpg', 'CREATINE TANGY ORANGE 2.png', 'CREATINE TANGY ORANGE 3.png'],
+                'tags' => ['creatine', 'strength', 'power', 'muscle'],
+                'features' => ['Pure creatine', 'Strength boost', 'Power enhancement', 'Muscle growth'],
+                'specifications' => [
+                    'servingSize' => '5g',
+                    'servingsPerContainer' => '60',
+                    'nutritionFacts' => [
+                        ['nutrient' => 'Creatine Monohydrate', 'amount' => '5g', 'dailyValue' => '-'],
+                        ['nutrient' => 'Calories', 'amount' => '0', 'dailyValue' => '0%']
+                    ]
+                ],
+                'is_active' => true,
+                'is_featured' => true,
+                'sort_order' => 3,
+                'seo' => [
+                    'meta_title' => 'Premium Creatine Monohydrate | Ge More Nutralife',
+                    'meta_description' => 'Pure creatine for enhanced strength and power.',
+                    'meta_keywords' => 'creatine, strength supplement, power booster, muscle supplement'
+                ],
+                'variants' => [
+                    [
+                        'name' => 'Tangy Orange',
+                        'size' => '300g',
+                        'price' => 1499.00,
+                        'original_price' => 1899.00,
+                        'stock' => 90,
+                        'images' => ['CREATINE TANGY ORANGE 1.png', 'CREATINE TANGY ORANGE 2.png', 'CREATINE TANGY ORANGE 3.png'],
+                        'is_active' => true,
+                        'is_default' => true
+                    ],
+                    [
+                        'name' => 'Unflavored',
+                        'size' => '300g',
+                        'price' => 1499.00,
+                        'original_price' => 1899.00,
+                        'stock' => 90,
+                        'images' => ['CREATINE UNFLAVORED 1.png', 'CREATINE UNFLAVORED 2.png', 'CREATINE UNFLAVORED 3.png'],
+                        'is_active' => true,
+                        'is_default' => false
+                    ]
+                ]
+            ],
+            // Mass Gainer
             // Mass Gainer
             [
                 'name' => 'Premium Mass Gainer',

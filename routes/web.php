@@ -10,6 +10,14 @@ Route::get('/store', [ProductController::class, 'index'])->name('store');
 Route::get('/cart', [CartController::class, 'index'])->name('cart');
 Route::get('/checkout', [CartController::class, 'checkout'])->name('checkout');
 
+// Cart API Routes
+Route::prefix('cart')->group(function () {
+    Route::get('/data', [CartController::class, 'getCartData'])->name('cart.data');
+    Route::post('/add/{productId}', [CartController::class, 'add'])->name('cart.add');
+    Route::post('/update/{productId}', [CartController::class, 'update'])->name('cart.update');
+    Route::delete('/remove/{productId}', [CartController::class, 'remove'])->name('cart.remove');
+});
+
 Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
 
 // API Routes for AJAX calls

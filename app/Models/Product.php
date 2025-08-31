@@ -39,6 +39,7 @@ class Product extends Model
         'is_featured' => 'boolean',
         'ratings_average' => 'decimal:2',
     ];
+    protected $appends = ['min_price', 'discount_price'];
 
     /**
      * Boot the model.

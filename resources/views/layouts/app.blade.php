@@ -195,13 +195,13 @@
     <!-- Essential JavaScript -->
     <script src="js/jquery-3.0.0.min.js"></script>
     <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="{{ asset('js/cart-functions.js') }}"></script>
     
     <!-- Slick Slider JS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
     
     <script src="js/frontend-api.js"></script>
     <script src="js/optimized.js"></script>
-    <script src="js/cart.js"></script>
 
     @yield('additional_js')
 </body>

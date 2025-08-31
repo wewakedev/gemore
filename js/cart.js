@@ -726,6 +726,7 @@ class CartManager {
 
   // Update cart sidebar for modal
   updateCartSidebar() {
+    console.log("Updating cart sidebar");
     const cartItems = document.getElementById("cart-items"); // This matches the HTML
     const cartEmpty = document.getElementById("cart-empty");
     const cartTotal = document.getElementById("cart-total");
