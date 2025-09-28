@@ -12,9 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('carts', function (Blueprint $table) {
-            $table->id();
+            $table->engine = 'InnoDB'; // Explicitly set InnoDB engine
+            $table->id(); // This creates BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
             $table->string('cart_token')->index();
-            $table->foreignId('product_id')->constrained()->onDelete('cascade');
+            $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
             $table->integer('quantity')->default(1);
             $table->timestamps();
             

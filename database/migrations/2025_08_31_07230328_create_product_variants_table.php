@@ -12,8 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('product_variants', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('product_id')->constrained()->onDelete('cascade');
+            $table->engine = 'InnoDB'; // Explicitly set InnoDB engine
+            $table->id(); // This creates BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+            $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
             $table->string('name'); // e.g., "Chocolate Flavor", "Tangy Orange Flavor"
             $table->string('size')->nullable(); // e.g., "1kg", "2kg", "300g"
             $table->decimal('price', 10, 2);
