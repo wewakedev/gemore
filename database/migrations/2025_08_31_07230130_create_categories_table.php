@@ -12,7 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('categories', function (Blueprint $table) {
-            $table->id();
+            $table->engine = 'InnoDB'; // Explicitly set InnoDB engine
+            $table->id(); // This creates BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
             $table->string('name');
             $table->string('slug')->unique();
             $table->text('description')->nullable();

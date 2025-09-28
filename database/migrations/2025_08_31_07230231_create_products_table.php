@@ -12,10 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('products', function (Blueprint $table) {
-            $table->id();
+            $table->engine = 'InnoDB'; // Explicitly set InnoDB engine
+            $table->id(); // This creates BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
             $table->string('name');
             $table->text('description');
-            $table->foreignId('category_id')->constrained()->onDelete('cascade');
+            $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
             $table->string('subcategory')->nullable();
             $table->string('brand')->default('Ge More Nutralife');
             $table->string('sku')->unique();

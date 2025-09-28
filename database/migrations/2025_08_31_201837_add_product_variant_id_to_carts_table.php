@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('carts', function (Blueprint $table) {
-            $table->foreignId('product_variant_id')->nullable()->constrained()->onDelete('cascade')->after('product_id');
+            $table->foreignId('product_variant_id')->nullable()->constrained('product_variants')->onDelete('cascade')->after('product_id');
             
             // Drop the old unique constraint
             $table->dropUnique(['cart_token', 'product_id']);
