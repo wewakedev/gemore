@@ -506,13 +506,12 @@
             body: formData
         })
         .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
+            return response.json().then(data => {
+                return { response, data };
+            });
         })
-        .then(data => {
-            if (data.success) {
+        .then(({ response, data }) => {
+            if (response.ok && data.success) {
                 const paymentMethod = formData.get('payment-method');
                 
                 if (paymentMethod === 'cod') {
@@ -533,7 +532,7 @@
                     }, 1500);
                 }
             } else {
-                // Handle validation errors
+                // Handle validation errors and other errors
                 placeOrderBtn.disabled = false;
                 placeOrderBtn.innerHTML = originalText;
                 
