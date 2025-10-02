@@ -27,7 +27,7 @@ class OrderController extends Controller
                 'billing-phone' => 'required|string|max:20',
                 'billing-address' => 'required|string',
                 'billing-city' => 'nullable|string|max:100',
-                'billing-state' => 'nullable|string|max:100',
+                'billing-state' => 'required|string|max:100',
                 'billing-pincode' => 'nullable|string|max:10',
                 'shipping-name' => 'nullable|string|max:255',
                 'shipping-address' => 'nullable|string',
