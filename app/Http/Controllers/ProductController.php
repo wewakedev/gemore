@@ -115,7 +115,6 @@ class ProductController extends Controller
 
     public function show(Product $product)
     {
-        return "Product ID: {$product->id}, Name: {$product->name}";
         $product->load(['category', 'activeVariants', 'approvedReviews.user']);
         
         $relatedProducts = Product::with(['category', 'activeVariants'])
