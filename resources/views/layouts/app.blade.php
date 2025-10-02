@@ -250,31 +250,75 @@
                             <h4>Billing Information</h4>
                             <div class="form-group">
                                 <label for="billing-name">Full Name *</label>
-                                <input type="text" id="billing-name" name="billing-name" required="">
+                                <input type="text" id="billing-name" name="billing-name" autocomplete="name" required="">
                             </div>
                             <div class="form-group">
                                 <label for="billing-email">Email *</label>
-                                <input type="email" id="billing-email" name="billing-email" required="">
+                                <input type="email" id="billing-email" name="billing-email" autocomplete="email" required="">
                             </div>
                             <div class="form-group">
                                 <label for="billing-phone">Phone *</label>
-                                <input type="tel" id="billing-phone" name="billing-phone" required="">
+                                <input type="tel" id="billing-phone" name="billing-phone" autocomplete="tel" required="">
                             </div>
                             <div class="form-group">
                                 <label for="billing-address">Address *</label>
-                                <textarea id="billing-address" name="billing-address" rows="3" required=""></textarea>
+                                <textarea id="billing-address" name="billing-address" rows="3" autocomplete="street-address" required=""></textarea>
                             </div>
                             <div class="row">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="billing-city">City *</label>
-                                        <input type="text" id="billing-city" name="billing-city" required="">
+                                        <input type="text" id="billing-city" name="billing-city" autocomplete="address-level2" required="">
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="billing-state">State *</label>
+                                        <select id="billing-state" name="billing-state" autocomplete="address-level1" required="">
+                                            <option value="">Select State</option>
+                                            <option value="Andhra Pradesh">Andhra Pradesh</option>
+                                            <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                                            <option value="Assam">Assam</option>
+                                            <option value="Bihar">Bihar</option>
+                                            <option value="Chhattisgarh">Chhattisgarh</option>
+                                            <option value="Goa">Goa</option>
+                                            <option value="Gujarat">Gujarat</option>
+                                            <option value="Haryana">Haryana</option>
+                                            <option value="Himachal Pradesh">Himachal Pradesh</option>
+                                            <option value="Jharkhand">Jharkhand</option>
+                                            <option value="Karnataka">Karnataka</option>
+                                            <option value="Kerala">Kerala</option>
+                                            <option value="Madhya Pradesh">Madhya Pradesh</option>
+                                            <option value="Maharashtra">Maharashtra</option>
+                                            <option value="Manipur">Manipur</option>
+                                            <option value="Meghalaya">Meghalaya</option>
+                                            <option value="Mizoram">Mizoram</option>
+                                            <option value="Nagaland">Nagaland</option>
+                                            <option value="Odisha">Odisha</option>
+                                            <option value="Punjab">Punjab</option>
+                                            <option value="Rajasthan">Rajasthan</option>
+                                            <option value="Sikkim">Sikkim</option>
+                                            <option value="Tamil Nadu">Tamil Nadu</option>
+                                            <option value="Telangana">Telangana</option>
+                                            <option value="Tripura">Tripura</option>
+                                            <option value="Uttar Pradesh">Uttar Pradesh</option>
+                                            <option value="Uttarakhand">Uttarakhand</option>
+                                            <option value="West Bengal">West Bengal</option>
+                                            <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+                                            <option value="Chandigarh">Chandigarh</option>
+                                            <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar Haveli and Daman and Diu</option>
+                                            <option value="Delhi">Delhi</option>
+                                            <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                                            <option value="Ladakh">Ladakh</option>
+                                            <option value="Lakshadweep">Lakshadweep</option>
+                                            <option value="Puducherry">Puducherry</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="billing-pincode">Pincode *</label>
-                                        <input type="text" id="billing-pincode" name="billing-pincode"
+                                        <input type="text" id="billing-pincode" name="billing-pincode" autocomplete="postal-code"
                                             required="">
                                     </div>
                                 </div>
