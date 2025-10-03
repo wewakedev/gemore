@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Login - Ge More Nutralife</title>
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Font Awesome -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --primary-color: #8b0000;
+        --secondary-color: #ffffff;
+      }
+
+      body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      .login-container {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        width: 100%;
+        max-width: 400px;
+      }
+
+      .login-header {
+        background: var(--primary-color);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+      }
+
+      .login-body {
+        padding: 2rem;
+      }
+
+      .form-control {
+        border: none;
+        border-bottom: 2px solid #eee;
+        border-radius: 0;
+        padding: 12px 0;
+        margin-bottom: 1rem;
+        transition: border-color 0.3s;
+      }
+
+      .form-control:focus {
+        border-bottom-color: var(--primary-color);
+        box-shadow: none;
+      }
+
+      .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s;
+      }
+
+      .btn-primary:hover {
+        background-color: #660000;
+        border-color: #660000;
+        transform: translateY(-2px);
+      }
+
+      .form-label {
+        font-weight: 600;
+        color: #666;
+        margin-bottom: 0.5rem;
+      }
+
+      .alert {
+        border: none;
+        border-radius: 10px;
+      }
+
+      .spinner-border {
+        color: var(--primary-color);
+      }
+
+      .login-footer {
+        text-align: center;
+        padding: 1rem;
+        color: #666;
+        font-size: 0.9rem;
+      }
+
+      .brand-logo {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-container">
+      <div class="login-header">
+        <div class="brand-logo">
+          <i class="fas fa-dumbbell"></i>
+        </div>
+        <h3>Admin Login</h3>
+        <p class="mb-0">Ge More Nutralife</p>
+      </div>
+
+      <div class="login-body">
+        <div id="alertContainer"></div>
+
+        <form id="loginForm">
+          <div class="mb-3">
+            <label for="email" class="form-label">
+              <i class="fas fa-envelope me-2"></i>Email Address
+            </label>
+            <input type="email" class="form-control" id="email" required />
+          </div>
+
+          <div class="mb-4">
+            <label for="password" class="form-label">
+              <i class="fas fa-lock me-2"></i>Password
+            </label>
+            <input
+              type="password"
+              class="form-control"
+              id="password"
+              required
+            />
+          </div>
+
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary" id="loginBtn">
+              <span class="btn-text">Login to Admin Panel</span>
+              <span
+                class="spinner-border spinner-border-sm d-none"
+                role="status"
+              >
+                <span class="visually-hidden">Loading...</span>
+              </span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="login-footer">
+        <a href="/" class="text-decoration-none">
+          <i class="fas fa-arrow-left me-2"></i>Back to Website
+        </a>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      class AdminLogin {
+        constructor() {
+          this.apiBase = "/api";
+          this.init();
+        }
+
+        init() {
+          // Check if already logged in
+          const token = localStorage.getItem("adminToken");
+          if (token) {
+            this.verifyTokenAndRedirect(token);
+          }
+
+          // Setup form submission
+          document
+            .getElementById("loginForm")
+            .addEventListener("submit", (e) => {
+              e.preventDefault();
+              this.handleLogin();
+            });
+        }
+
+        async verifyTokenAndRedirect(token) {
+          try {
+            const response = await fetch(`${this.apiBase}/auth/me`, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              if (data.user.role === "admin") {
+                window.location.href = "/admin/";
+                return;
+              }
+            }
+          } catch (error) {
+            console.log("Token verification failed");
+          }
+
+          // If verification fails, remove invalid token
+          localStorage.removeItem("adminToken");
+        }
+
+        async handleLogin() {
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
+          const loginBtn = document.getElementById("loginBtn");
+          const btnText = loginBtn.querySelector(".btn-text");
+          const spinner = loginBtn.querySelector(".spinner-border");
+
+          // Show loading state
+          loginBtn.disabled = true;
+          btnText.textContent = "Logging in...";
+          spinner.classList.remove("d-none");
+          this.clearAlerts();
+
+          try {
+            const response = await fetch(`${this.apiBase}/auth/login`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ email, password }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+              throw new Error(data.message || "Login failed");
+            }
+
+            // Check if user is admin
+            if (data.user.role !== "admin") {
+              throw new Error("Admin access required");
+            }
+
+            // Store token and redirect
+            localStorage.setItem("adminToken", data.token);
+
+            this.showSuccess("Login successful! Redirecting...");
+
+            setTimeout(() => {
+              window.location.href = "/admin/";
+            }, 1000);
+          } catch (error) {
+            console.error("Login error:", error);
+            this.showError(error.message);
+          } finally {
+            // Reset button state
+            loginBtn.disabled = false;
+            btnText.textContent = "Login to Admin Panel";
+            spinner.classList.add("d-none");
+          }
+        }
+
+        showSuccess(message) {
+          this.showAlert(message, "success");
+        }
+
+        showError(message) {
+          this.showAlert(message, "danger");
+        }
+
+        showAlert(message, type) {
+          const alertContainer = document.getElementById("alertContainer");
+          const alertDiv = document.createElement("div");
+          alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+          alertDiv.innerHTML = `
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+
+          alertContainer.innerHTML = "";
+          alertContainer.appendChild(alertDiv);
+
+          // Auto dismiss after 5 seconds
+          setTimeout(() => {
+            if (alertDiv.parentNode) {
+              alertDiv.parentNode.removeChild(alertDiv);
+            }
+          }, 5000);
+        }
+
+        clearAlerts() {
+          document.getElementById("alertContainer").innerHTML = "";
+        }
+      }
+
+      // Initialize admin login
+      new AdminLogin();
+    </script>
+  </body>
+</html>
