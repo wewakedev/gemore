@@ -184,10 +184,25 @@ class TestProductSeeder extends Seeder
             'sort_order' => 3
         ]);
 
+        // Create Mango variant WITHOUT sizes (to test optional size functionality)
+        $mangoVariant = ProductVariant::create([
+            'product_id' => $product->id,
+            'name' => 'Mango',
+            'price' => 2799.00,
+            'original_price' => 3299.00,
+            'stock' => 50,
+            'images' => ['product_kesar.png'],
+            'is_active' => true,
+            'is_default' => false,
+            'sort_order' => 4
+        ]);
+        // Note: No sizes added for Mango variant - can be added directly to cart
+
         $this->command->info('Test product created successfully!');
         $this->command->info('Product: ' . $product->name);
-        $this->command->info('Variants: Chocolate, Vanilla, Strawberry');
-        $this->command->info('Sizes: 1kg, 2kg (and 500g for Strawberry - out of stock)');
+        $this->command->info('Variants: Chocolate, Vanilla, Strawberry, Mango');
+        $this->command->info('Sizes: 1kg, 2kg for Chocolate/Vanilla, 1kg/2kg/500g for Strawberry');
+        $this->command->info('Note: Mango variant has NO sizes - can be added directly to cart');
     }
 }
 

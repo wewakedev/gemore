@@ -62,6 +62,17 @@ class CartController extends Controller
                 ], 400);
             }
 
+            // Check if variant has sizes
+            $variantHasSizes = $variant->activeSizes()->count() > 0;
+            
+            // If variant has sizes, size_id is required
+            if ($variantHasSizes && !$sizeId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Please select a size for this variant'
+                ], 400);
+            }
+
             // If size_id is provided, validate it belongs to the variant
             if ($sizeId) {
                 $size = $variant->sizes()->find($sizeId);

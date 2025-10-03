@@ -516,6 +516,8 @@
                 {{ $variant->id }}: {
                     id: {{ $variant->id }},
                     name: "{{ addslashes($variant->name) }}",
+                    price: {{ $variant->price }},
+                    originalPrice: {{ $variant->original_price ?? 'null' }},
                     sizes: [
                         @foreach ($variant->activeSizes as $size)
                             {
@@ -561,14 +563,32 @@
             // Update hidden input
             document.getElementById('selected-variant-id').value = variantId;
 
-            // Show sizes for this variant
+            // Show sizes for this variant (or hide if no sizes)
             showSizesForVariant(variantId);
+            
+            // If variant has no sizes, update price to variant price
+            const currentVariant = variantsData[variantId];
+            if (!currentVariant.sizes || currentVariant.sizes.length === 0) {
+                // Use variant's base price since there are no sizes
+                updatePriceDisplay(currentVariant.price, currentVariant.originalPrice);
+            }
         }
 
         function showSizesForVariant(variantId) {
             const variant = variantsData[variantId];
+            
+            // If no sizes for this variant, hide size selector and clear selectedSizeId
             if (!variant || !variant.sizes || variant.sizes.length === 0) {
                 document.getElementById('product-sizes').classList.remove('visible');
+                selectedSizeId = null;
+                document.getElementById('selected-size-id').value = '';
+                
+                // Update price to show variant price (not size price)
+                const selectedVariant = variantsData[selectedVariantId];
+                if (selectedVariant) {
+                    // Note: The variant price is already shown in the initial load
+                    // We don't need to update it here as it's handled by selectVariant
+                }
                 return;
             }
 
@@ -646,8 +666,12 @@
         function addToCart(productId) {
             const quantity = parseInt(document.getElementById('quantity').value);
 
-            // Validate size selection
-            if (!selectedSizeId) {
+            // Check if current variant has sizes
+            const currentVariant = variantsData[selectedVariantId];
+            const hasSizes = currentVariant && currentVariant.sizes && currentVariant.sizes.length > 0;
+            
+            // Only validate size selection if the variant has sizes
+            if (hasSizes && !selectedSizeId) {
                 alert('Please select a size');
                 return;
             }
@@ -689,8 +713,18 @@
         function buyNow(productId) {
             const quantity = parseInt(document.getElementById('quantity').value);
 
+            // Check if current variant has sizes
+            const currentVariant = variantsData[selectedVariantId];
+            const hasSizes = currentVariant && currentVariant.sizes && currentVariant.sizes.length > 0;
+            
+            // Only validate size selection if the variant has sizes
+            if (hasSizes && !selectedSizeId) {
+                alert('Please select a size');
+                return;
+            }
+
             if (typeof CartFunctions !== 'undefined') {
-                CartFunctions.buyNow(productId, quantity, selectedVariantId);
+                CartFunctions.buyNow(productId, quantity, selectedVariantId, selectedSizeId);
             } else {
                 // Fallback: Add to cart first, then open checkout modal
                 addToCart(productId);
