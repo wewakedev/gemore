@@ -5,25 +5,23 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ProductVariant extends Model
+class VariantSize extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'product_id',
-        'name',
-        'size',
+        'product_variant_id',
+        'size_name',
+        'size_display_name',
         'price',
         'original_price',
         'stock',
-        'images',
         'is_active',
         'is_default',
         'sort_order',
     ];
 
     protected $casts = [
-        'images' => 'array',
         'is_active' => 'boolean',
         'is_default' => 'boolean',
         'price' => 'decimal:2',
@@ -31,15 +29,23 @@ class ProductVariant extends Model
     ];
 
     /**
-     * Get the product that owns the variant.
+     * Get the product variant that owns the size.
      */
-    public function product()
+    public function productVariant()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(ProductVariant::class);
     }
 
     /**
-     * Get the order items for the variant.
+     * Get the cart items for the variant size.
+     */
+    public function cartItems()
+    {
+        return $this->hasMany(Cart::class);
+    }
+
+    /**
+     * Get the order items for the variant size.
      */
     public function orderItems()
     {
@@ -47,31 +53,7 @@ class ProductVariant extends Model
     }
 
     /**
-     * Get the sizes for the variant.
-     */
-    public function sizes()
-    {
-        return $this->hasMany(VariantSize::class);
-    }
-
-    /**
-     * Get active sizes for the variant.
-     */
-    public function activeSizes()
-    {
-        return $this->hasMany(VariantSize::class)->where('is_active', true)->orderBy('sort_order');
-    }
-
-    /**
-     * Get the default size for the variant.
-     */
-    public function defaultSize()
-    {
-        return $this->hasOne(VariantSize::class)->where('is_default', true);
-    }
-
-    /**
-     * Scope a query to only include active variants.
+     * Scope a query to only include active sizes.
      */
     public function scopeActive($query)
     {
@@ -79,7 +61,7 @@ class ProductVariant extends Model
     }
 
     /**
-     * Scope a query to only include in-stock variants.
+     * Scope a query to only include in-stock sizes.
      */
     public function scopeInStock($query)
     {
@@ -87,7 +69,7 @@ class ProductVariant extends Model
     }
 
     /**
-     * Check if variant is in stock.
+     * Check if size is in stock.
      */
     public function isInStock()
     {
@@ -106,11 +88,11 @@ class ProductVariant extends Model
     }
 
     /**
-     * Get the first image.
+     * Get the display name or fall back to size_name.
      */
-    public function getFirstImageAttribute()
+    public function getDisplayNameAttribute()
     {
-        $images = $this->images ?? [];
-        return count($images) > 0 ? $images[0] : null;
+        return $this->size_display_name ?: $this->size_name;
     }
-} 
+}
+

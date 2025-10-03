@@ -504,7 +504,7 @@
                         style="{{ $cartItems->count() > 0 ? '' : 'display: none;' }}">
                         @if ($cartItems->count() > 0)
                             @foreach ($cartItems as $item)
-                                <div class="cart-item" data-product-id="{{ $item->product_id }}" data-variant-id="{{ $item->product_variant_id }}">
+                                <div class="cart-item" data-product-id="{{ $item->product_id }}" data-variant-id="{{ $item->product_variant_id }}" data-size-id="{{ $item->variant_size_id }}">
                                     <div class="item-image">
                                         <a href="{{ route('products.show', $item->product->slug ?: $item->product->id) }}" style="display: block; width: 100%; height: 100%;">
                                             <img src="{{ $item->product->images && count($item->product->images) > 0 ? asset('images/' . $item->product->images[0]) : asset('images/placeholder.svg') }}"
@@ -518,26 +518,35 @@
                                             </a>
                                         </div>
                                         <div class="item-variant">
-                                            {{ $item->productVariant ? $item->productVariant->name : ($item->product->defaultVariant ? $item->product->defaultVariant->name : 'Default') }}
+                                            @if ($item->productVariant)
+                                                {{ $item->productVariant->name }}
+                                                @if ($item->variantSize)
+                                                    - {{ $item->variantSize->display_name }}
+                                                @endif
+                                            @elseif ($item->product->defaultVariant)
+                                                {{ $item->product->defaultVariant->name }}
+                                            @else
+                                                Default
+                                            @endif
                                         </div>
                                         <div class="item-price">
-                                            ₹{{ $item->productVariant ? $item->productVariant->price : ($item->product->defaultVariant ? $item->product->defaultVariant->price : '0.00') }}
+                                            ₹{{ $item->variantSize ? $item->variantSize->price : ($item->productVariant ? $item->productVariant->price : ($item->product->defaultVariant ? $item->product->defaultVariant->price : '0.00')) }}
                                         </div>
                                     </div>
                                     <div class="quantity-controls">
-                                        <button class="quantity-btn" onclick="updateQuantity({{ $item->product_id }}, -1, {{ $item->product_variant_id ? $item->product_variant_id : 'null' }})">
+                                        <button class="quantity-btn" onclick="updateQuantity({{ $item->product_id }}, -1, {{ $item->product_variant_id ? $item->product_variant_id : 'null' }}, {{ $item->variant_size_id ? $item->variant_size_id : 'null' }})">
                                             <i class="fas fa-minus"></i>
                                         </button>
                                         <input type="number" class="quantity-input" value="{{ $item->quantity }}"
-                                            min="1" onchange="setQuantity({{ $item->product_id }}, this.value, {{ $item->product_variant_id ? $item->product_variant_id : 'null' }})">
-                                        <button class="quantity-btn" onclick="updateQuantity({{ $item->product_id }}, 1, {{ $item->product_variant_id ? $item->product_variant_id : 'null' }})">
+                                            min="1" onchange="setQuantity({{ $item->product_id }}, this.value, {{ $item->product_variant_id ? $item->product_variant_id : 'null' }}, {{ $item->variant_size_id ? $item->variant_size_id : 'null' }})">
+                                        <button class="quantity-btn" onclick="updateQuantity({{ $item->product_id }}, 1, {{ $item->product_variant_id ? $item->product_variant_id : 'null' }}, {{ $item->variant_size_id ? $item->variant_size_id : 'null' }})">
                                             <i class="fas fa-plus"></i>
                                         </button>
                                     </div>
                                     <div class="item-total">
-                                        ₹{{ ($item->productVariant ? $item->productVariant->price : ($item->product->defaultVariant ? $item->product->defaultVariant->price : 0)) * $item->quantity }}
+                                        ₹{{ ($item->variantSize ? $item->variantSize->price : ($item->productVariant ? $item->productVariant->price : ($item->product->defaultVariant ? $item->product->defaultVariant->price : 0))) * $item->quantity }}
                                     </div>
-                                    <button class="remove-item" onclick="removeFromCart({{ $item->product_id }}, {{ $item->product_variant_id ? $item->product_variant_id : 'null' }})">
+                                    <button class="remove-item" onclick="removeFromCart({{ $item->product_id }}, {{ $item->product_variant_id ? $item->product_variant_id : 'null' }}, {{ $item->variant_size_id ? $item->variant_size_id : 'null' }})">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -668,9 +677,10 @@
 
                 // Update individual cart items
                 cartData.items.forEach(item => {
-                    // Use both product_id and variant_id to find the specific cart item
+                    // Use product_id, variant_id, and size_id to find the specific cart item
                     const variantSelector = item.product_variant_id ? `[data-variant-id="${item.product_variant_id}"]` : '[data-variant-id=""], [data-variant-id="null"]';
-                    const cartItem = document.querySelector(`[data-product-id="${item.product_id}"]${variantSelector}`);
+                    const sizeSelector = item.variant_size_id ? `[data-size-id="${item.variant_size_id}"]` : '[data-size-id=""], [data-size-id="null"]';
+                    const cartItem = document.querySelector(`[data-product-id="${item.product_id}"]${variantSelector}${sizeSelector}`);
                     if (cartItem) {
                         // Update quantity input
                         const quantityInput = cartItem.querySelector('.quantity-input');
@@ -678,10 +688,10 @@
                             quantityInput.value = item.quantity;
                         }
 
-                        // Update item total using the correct variant price
+                        // Update item total using the correct size/variant price
                         const itemTotal = cartItem.querySelector('.item-total');
                         if (itemTotal) {
-                            const price = item.product_variant?.price || item.product.default_variant?.price || item.product.defaultVariant?.price || 0;
+                            const price = item.variant_size?.price || item.product_variant?.price || item.product.default_variant?.price || item.product.defaultVariant?.price || 0;
                             const total = price * item.quantity;
                             itemTotal.textContent = `₹${total.toFixed(2)}`;
                         }
@@ -693,9 +703,11 @@
                 currentItems.forEach(item => {
                     const productId = item.getAttribute('data-product-id');
                     const variantId = item.getAttribute('data-variant-id');
+                    const sizeId = item.getAttribute('data-size-id');
                     const exists = cartData.items.some(cartItem => 
                         cartItem.product_id == productId && 
-                        (cartItem.product_variant_id == variantId || (!cartItem.product_variant_id && (!variantId || variantId === 'null')))
+                        (cartItem.product_variant_id == variantId || (!cartItem.product_variant_id && (!variantId || variantId === 'null'))) &&
+                        (cartItem.variant_size_id == sizeId || (!cartItem.variant_size_id && (!sizeId || sizeId === 'null')))
                     );
                     if (!exists) {
                         item.remove();

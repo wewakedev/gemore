@@ -197,13 +197,32 @@ class OrderController extends Controller
 
             // Create order items
             foreach ($cartItems as $cartItem) {
+                // Get price from size > variant > default variant
+                $price = $cartItem->variantSize?->price 
+                    ?? $cartItem->productVariant?->price 
+                    ?? $cartItem->product->defaultVariant?->price 
+                    ?? 0;
+                
+                // Get variant name
+                $variantName = $cartItem->productVariant?->name 
+                    ?? $cartItem->product->defaultVariant?->name 
+                    ?? 'Default';
+                
+                // Get size name
+                $sizeName = $cartItem->variantSize?->display_name 
+                    ?? $cartItem->variantSize?->size_name 
+                    ?? null;
+                
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $cartItem->product_id,
+                    'product_variant_id' => $cartItem->product_variant_id,
+                    'variant_size_id' => $cartItem->variant_size_id,
                     'quantity' => $cartItem->quantity,
-                    'price' => $cartItem->product->defaultVariant?->price ?? 0,
+                    'price' => $price,
                     'product_name' => $cartItem->product->name,
-                    'variant_name' => $cartItem->product->defaultVariant?->name ?? 'Default'
+                    'variant_name' => $variantName,
+                    'variant_size' => $sizeName
                 ]);
             }
 
@@ -274,13 +293,32 @@ class OrderController extends Controller
 
             // Create order items
             foreach ($cartItems as $cartItem) {
+                // Get price from size > variant > default variant
+                $price = $cartItem->variantSize?->price 
+                    ?? $cartItem->productVariant?->price 
+                    ?? $cartItem->product->defaultVariant?->price 
+                    ?? 0;
+                
+                // Get variant name
+                $variantName = $cartItem->productVariant?->name 
+                    ?? $cartItem->product->defaultVariant?->name 
+                    ?? 'Default';
+                
+                // Get size name
+                $sizeName = $cartItem->variantSize?->display_name 
+                    ?? $cartItem->variantSize?->size_name 
+                    ?? null;
+                
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $cartItem->product_id,
+                    'product_variant_id' => $cartItem->product_variant_id,
+                    'variant_size_id' => $cartItem->variant_size_id,
                     'quantity' => $cartItem->quantity,
-                    'price' => $cartItem->product->defaultVariant?->price ?? 0,
+                    'price' => $price,
                     'product_name' => $cartItem->product->name,
-                    'variant_name' => $cartItem->product->defaultVariant?->name ?? 'Default'
+                    'variant_name' => $variantName,
+                    'variant_size' => $sizeName
                 ]);
             }
 
@@ -521,7 +559,9 @@ class OrderController extends Controller
      */
     public function orderSuccess($orderNumber)
     {
-        $order = Order::where('order_number', $orderNumber)->with('items.product')->first();
+        $order = Order::where('order_number', $orderNumber)
+            ->with(['items.product', 'items.productVariant', 'items.variantSize'])
+            ->first();
 
         if (!$order) {
             abort(404, 'Order not found');
@@ -535,7 +575,9 @@ class OrderController extends Controller
      */
     public function orderFailed($orderNumber)
     {
-        $order = Order::where('order_number', $orderNumber)->with('items.product')->first();
+        $order = Order::where('order_number', $orderNumber)
+            ->with(['items.product', 'items.productVariant', 'items.variantSize'])
+            ->first();
 
         if (!$order) {
             abort(404, 'Order not found');
@@ -549,7 +591,9 @@ class OrderController extends Controller
      */
     public function orderPending($orderNumber)
     {
-        $order = Order::where('order_number', $orderNumber)->with('items.product')->first();
+        $order = Order::where('order_number', $orderNumber)
+            ->with(['items.product', 'items.productVariant', 'items.variantSize'])
+            ->first();
 
         if (!$order) {
             abort(404, 'Order not found');

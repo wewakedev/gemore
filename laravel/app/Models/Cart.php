@@ -13,6 +13,7 @@ class Cart extends Model
         'cart_token',
         'product_id',
         'product_variant_id',
+        'variant_size_id',
         'quantity',
     ];
 
@@ -33,6 +34,14 @@ class Cart extends Model
     }
 
     /**
+     * Get the variant size that belongs to this cart item.
+     */
+    public function variantSize()
+    {
+        return $this->belongsTo(VariantSize::class);
+    }
+
+    /**
      * Scope to get cart items by token.
      */
     public function scopeByToken($query, $token)
@@ -46,7 +55,7 @@ class Cart extends Model
     public static function getCartWithProducts($token)
     {
         return static::byToken($token)
-            ->with(['product', 'product.defaultVariant', 'productVariant'])
+            ->with(['product', 'product.defaultVariant', 'productVariant', 'variantSize'])
             ->get();
     }
 
@@ -56,11 +65,11 @@ class Cart extends Model
     public static function getCartTotal($token)
     {
         return static::byToken($token)
-            ->with(['product', 'product.defaultVariant', 'productVariant'])
+            ->with(['product', 'product.defaultVariant', 'productVariant', 'variantSize'])
             ->get()
             ->sum(function ($item) {
-                // Use the selected variant price if available, otherwise use default variant
-                $price = $item->productVariant?->price ?? $item->product->defaultVariant?->price ?? 0;
+                // Priority: variant size price > variant price > default variant price
+                $price = $item->variantSize?->price ?? $item->productVariant?->price ?? $item->product->defaultVariant?->price ?? 0;
                 return $item->quantity * $price;
             });
     }

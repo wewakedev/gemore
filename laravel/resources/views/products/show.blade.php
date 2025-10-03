@@ -81,6 +81,51 @@
             margin-bottom: 25px;
         }
 
+        .product-sizes {
+            margin-bottom: 25px;
+            display: none;
+        }
+
+        .product-sizes.visible {
+            display: block;
+        }
+
+        .product-sizes h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .size-option {
+            display: inline-block;
+            padding: 12px 20px;
+            margin: 5px 10px 5px 0;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .size-option:hover {
+            border-color: #8b0000;
+            background: #fff5f5;
+        }
+
+        .size-option.selected {
+            background: linear-gradient(135deg, #8b0000, #a52a2a);
+            color: white;
+            border-color: #8b0000;
+        }
+
+        .size-option.out-of-stock {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #f8f9fa;
+        }
+
         .variant-option {
             display: inline-block;
             background: #f8f9fa;
@@ -355,31 +400,43 @@
 
                             @if ($product->activeVariants->count() > 0)
                                 <div class="product-variants">
-                                    <h4>Available Variants:</h4>
+                                    <h4>Select Variant:</h4>
                                     @foreach ($product->activeVariants as $variant)
-                                        <span class="variant-option"
-                                            onclick="selectVariant({{ $variant->id }}, '{{ $variant->name }}', {{ $variant->price }})">
+                                        <span class="variant-option {{ $loop->first ? 'selected' : '' }}"
+                                            data-variant-id="{{ $variant->id }}"
+                                            onclick="selectVariant({{ $variant->id }}, '{{ addslashes($variant->name) }}')">
                                             {{ $variant->name }}
                                         </span>
                                     @endforeach
+                                </div>
+
+                                <!-- Size Selection (shown after variant selection) -->
+                                <div class="product-sizes" id="product-sizes">
+                                    <h4>Select Size:</h4>
+                                    <div id="size-options-container"></div>
                                 </div>
 
                                 @php
                                     $defaultVariant =
                                         $product->activeVariants->where('is_default', true)->first() ??
                                         $product->activeVariants->first();
+                                    $defaultSize = $defaultVariant->activeSizes->where('is_default', true)->first() ??
+                                        $defaultVariant->activeSizes->first();
                                 @endphp
 
                                 <div class="product-price" id="product-price">
-                                    @if ($defaultVariant->original_price && $defaultVariant->original_price > $defaultVariant->price)
-                                        <span
-                                            class="original-price">₹{{ number_format($defaultVariant->original_price, 2) }}</span>
+                                    @if ($defaultSize)
+                                        @if ($defaultSize->original_price && $defaultSize->original_price > $defaultSize->price)
+                                            <span class="original-price" id="original-price">₹{{ number_format($defaultSize->original_price, 2) }}</span>
+                                        @endif
+                                        <span class="current-price" id="current-price">₹{{ number_format($defaultSize->price, 2) }}</span>
+                                    @else
+                                        <span class="current-price" id="current-price">Price not available</span>
                                     @endif
-                                    <span class="current-price"
-                                        id="current-price">₹{{ number_format($defaultVariant->price, 2) }}</span>
                                 </div>
 
                                 <input type="hidden" id="selected-variant-id" value="{{ $defaultVariant->id }}">
+                                <input type="hidden" id="selected-size-id" value="{{ $defaultSize ? $defaultSize->id : '' }}">
                             @else
                                 <div class="product-price">
                                     <span class="current-price">Price not available</span>
@@ -453,10 +510,38 @@
 @section('additional_js')
     <script src="{{ asset('js/cart-functions.js') }}"></script>
     <script>
-        let selectedVariantId =
-            {{ $product->activeVariants->count() > 0 ? ($product->activeVariants->where('is_default', true)->first() ?? $product->activeVariants->first())->id : 'null' }};
-        let selectedVariantPrice =
-            {{ $product->activeVariants->count() > 0 ? ($product->activeVariants->where('is_default', true)->first() ?? $product->activeVariants->first())->price : 0 }};
+        // Store variants data with their sizes
+        const variantsData = {
+            @foreach ($product->activeVariants as $variant)
+                {{ $variant->id }}: {
+                    id: {{ $variant->id }},
+                    name: "{{ addslashes($variant->name) }}",
+                    sizes: [
+                        @foreach ($variant->activeSizes as $size)
+                            {
+                                id: {{ $size->id }},
+                                name: "{{ addslashes($size->size_name) }}",
+                                displayName: "{{ addslashes($size->display_name) }}",
+                                price: {{ $size->price }},
+                                originalPrice: {{ $size->original_price ?? 'null' }},
+                                stock: {{ $size->stock }},
+                                isDefault: {{ $size->is_default ? 'true' : 'false' }}
+                            }{{ !$loop->last ? ',' : '' }}
+                        @endforeach
+                    ]
+                }{{ !$loop->last ? ',' : '' }}
+            @endforeach
+        };
+
+        let selectedVariantId = {{ $product->activeVariants->count() > 0 ? ($product->activeVariants->where('is_default', true)->first() ?? $product->activeVariants->first())->id : 'null' }};
+        let selectedSizeId = {{ $defaultSize ? $defaultSize->id : 'null' }};
+
+        // Initialize with default variant's sizes
+        document.addEventListener('DOMContentLoaded', function() {
+            if (selectedVariantId && variantsData[selectedVariantId]) {
+                showSizesForVariant(selectedVariantId);
+            }
+        });
 
         function changeMainImage(imageSrc, thumbnailElement) {
             document.getElementById('main-product-image').src = imageSrc;
@@ -466,19 +551,86 @@
             thumbnailElement.classList.add('active');
         }
 
-        function selectVariant(variantId, variantName, variantPrice) {
+        function selectVariant(variantId, variantName) {
             selectedVariantId = variantId;
-            selectedVariantPrice = variantPrice;
-
-            // Update price display
-            document.getElementById('current-price').textContent = `₹${parseFloat(variantPrice).toFixed(2)}`;
-
+            
             // Update selected variant indicator
             document.querySelectorAll('.variant-option').forEach(option => option.classList.remove('selected'));
             event.target.classList.add('selected');
 
             // Update hidden input
             document.getElementById('selected-variant-id').value = variantId;
+
+            // Show sizes for this variant
+            showSizesForVariant(variantId);
+        }
+
+        function showSizesForVariant(variantId) {
+            const variant = variantsData[variantId];
+            if (!variant || !variant.sizes || variant.sizes.length === 0) {
+                document.getElementById('product-sizes').classList.remove('visible');
+                return;
+            }
+
+            const sizeContainer = document.getElementById('size-options-container');
+            sizeContainer.innerHTML = '';
+
+            variant.sizes.forEach((size, index) => {
+                const sizeOption = document.createElement('span');
+                sizeOption.className = 'size-option';
+                
+                if (size.stock <= 0) {
+                    sizeOption.classList.add('out-of-stock');
+                }
+                
+                // Select the first size or default size by default
+                if ((index === 0 && !selectedSizeId) || size.isDefault) {
+                    sizeOption.classList.add('selected');
+                    selectedSizeId = size.id;
+                    updatePriceDisplay(size.price, size.originalPrice);
+                    document.getElementById('selected-size-id').value = size.id;
+                }
+
+                sizeOption.textContent = size.displayName;
+                sizeOption.setAttribute('data-size-id', size.id);
+                
+                if (size.stock > 0) {
+                    sizeOption.onclick = function() {
+                        selectSize(size.id, size.price, size.originalPrice);
+                    };
+                }
+
+                sizeContainer.appendChild(sizeOption);
+            });
+
+            // Show the size selector
+            document.getElementById('product-sizes').classList.add('visible');
+        }
+
+        function selectSize(sizeId, price, originalPrice) {
+            selectedSizeId = sizeId;
+
+            // Update selected size indicator
+            document.querySelectorAll('.size-option').forEach(option => option.classList.remove('selected'));
+            event.target.classList.add('selected');
+
+            // Update hidden input
+            document.getElementById('selected-size-id').value = sizeId;
+
+            // Update price display
+            updatePriceDisplay(price, originalPrice);
+        }
+
+        function updatePriceDisplay(price, originalPrice) {
+            const priceContainer = document.getElementById('product-price');
+            let priceHTML = '';
+            
+            if (originalPrice && originalPrice > price) {
+                priceHTML += `<span class="original-price" id="original-price">₹${parseFloat(originalPrice).toFixed(2)}</span>`;
+            }
+            
+            priceHTML += `<span class="current-price" id="current-price">₹${parseFloat(price).toFixed(2)}</span>`;
+            priceContainer.innerHTML = priceHTML;
         }
 
         function changeQuantity(change) {
@@ -494,8 +646,14 @@
         function addToCart(productId) {
             const quantity = parseInt(document.getElementById('quantity').value);
 
+            // Validate size selection
+            if (!selectedSizeId) {
+                alert('Please select a size');
+                return;
+            }
+
             if (typeof CartFunctions !== 'undefined') {
-                CartFunctions.addToCart(productId, quantity, selectedVariantId);
+                CartFunctions.addToCart(productId, quantity, selectedVariantId, selectedSizeId);
             } else {
                 // Fallback implementation
                 const requestBody = {

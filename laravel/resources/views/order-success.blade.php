@@ -374,7 +374,12 @@
                                     </div>
                                     <div class="item-details">
                                         <div class="item-name">{{ $item->product_name }}</div>
-                                        <div class="item-variant">{{ $item->variant_name ?? 'Default' }}</div>
+                                        <div class="item-variant">
+                                            {{ $item->variant_name ?? 'Default' }}
+                                            @if($item->variant_size)
+                                                - {{ $item->variant_size }}
+                                            @endif
+                                        </div>
                                     </div>
                                     <div class="item-quantity">Qty: {{ $item->quantity }}</div>
                                     <div class="item-price">₹{{ number_format($item->price, 2) }}</div>

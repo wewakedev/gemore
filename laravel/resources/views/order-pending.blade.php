@@ -346,7 +346,7 @@
                         <img src="{{ $item->product->image_url ?? '/images/placeholder.svg' }}" alt="{{ $item->product_name }}" class="item-image">
                         <div class="item-details">
                             <h5>{{ $item->product_name }}</h5>
-                            <p>Variant: {{ $item->variant_name }}</p>
+                            <p>Variant: {{ $item->variant_name }}@if($item->variant_size) - {{ $item->variant_size }}@endif</p>
                             <p>Quantity: {{ $item->quantity }}</p>
                         </div>
                         <div class="item-price">

@@ -34,12 +34,14 @@ class CartController extends Controller
     {
         $request->validate([
             'quantity' => 'sometimes|integer|min:1',
-            'variant_id' => 'sometimes|integer|exists:product_variants,id'
+            'variant_id' => 'sometimes|integer|exists:product_variants,id',
+            'size_id' => 'sometimes|integer|exists:variant_sizes,id'
         ]);
 
         $cartToken = $request->cookie('cart_token');
         $quantity = $request->input('quantity', 1);
         $variantId = $request->input('variant_id');
+        $sizeId = $request->input('size_id');
 
         // Check if product exists
         $product = Product::find($productId);
@@ -59,12 +61,32 @@ class CartController extends Controller
                     'message' => 'Invalid variant for this product'
                 ], 400);
             }
+
+            // If size_id is provided, validate it belongs to the variant
+            if ($sizeId) {
+                $size = $variant->sizes()->find($sizeId);
+                if (!$size) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Invalid size for this variant'
+                    ], 400);
+                }
+
+                // Check stock
+                if ($size->stock < $quantity) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Insufficient stock available'
+                    ], 400);
+                }
+            }
         }
 
-        // Check if product with same variant is already in cart
+        // Check if product with same variant and size is already in cart
         $existingCartItem = Cart::where('cart_token', $cartToken)
             ->where('product_id', $productId)
             ->where('product_variant_id', $variantId)
+            ->where('variant_size_id', $sizeId)
             ->first();
 
         if ($existingCartItem) {
@@ -77,6 +99,7 @@ class CartController extends Controller
                 'cart_token' => $cartToken,
                 'product_id' => $productId,
                 'product_variant_id' => $variantId,
+                'variant_size_id' => $sizeId,
                 'quantity' => $quantity
             ]);
             $message = 'Product added to cart successfully';
@@ -105,17 +128,20 @@ class CartController extends Controller
     {
         $request->validate([
             'quantity' => 'required|integer|min:1',
-            'variant_id' => 'sometimes|integer|exists:product_variants,id'
+            'variant_id' => 'sometimes|integer|exists:product_variants,id',
+            'size_id' => 'sometimes|integer|exists:variant_sizes,id'
         ]);
 
         $cartToken = $request->cookie('cart_token');
         $quantity = $request->input('quantity');
         $variantId = $request->input('variant_id');
+        $sizeId = $request->input('size_id');
 
         // Debug logging
         \Log::info('Cart Update Request', [
             'product_id' => $productId,
             'variant_id' => $variantId,
+            'size_id' => $sizeId,
             'quantity' => $quantity,
             'cart_token' => $cartToken
         ]);
@@ -123,6 +149,7 @@ class CartController extends Controller
         $cartItem = Cart::where('cart_token', $cartToken)
             ->where('product_id', $productId)
             ->where('product_variant_id', $variantId)
+            ->where('variant_size_id', $sizeId)
             ->first();
 
         // Debug logging
@@ -163,15 +190,18 @@ class CartController extends Controller
     public function remove(Request $request, $productId): JsonResponse
     {
         $request->validate([
-            'variant_id' => 'sometimes|integer|exists:product_variants,id'
+            'variant_id' => 'sometimes|integer|exists:product_variants,id',
+            'size_id' => 'sometimes|integer|exists:variant_sizes,id'
         ]);
 
         $cartToken = $request->cookie('cart_token');
         $variantId = $request->input('variant_id');
+        $sizeId = $request->input('size_id');
 
         $deleted = Cart::where('cart_token', $cartToken)
             ->where('product_id', $productId)
             ->where('product_variant_id', $variantId)
+            ->where('variant_size_id', $sizeId)
             ->delete();
 
         if (!$deleted) {

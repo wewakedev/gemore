@@ -13,6 +13,7 @@ class OrderItem extends Model
         'order_id',
         'product_id',
         'product_variant_id',
+        'variant_size_id',
         'product_name',
         'variant_name',
         'variant_size',
@@ -50,6 +51,14 @@ class OrderItem extends Model
     public function productVariant()
     {
         return $this->belongsTo(ProductVariant::class);
+    }
+
+    /**
+     * Get the variant size that owns the item.
+     */
+    public function variantSize()
+    {
+        return $this->belongsTo(VariantSize::class);
     }
 
     /**
